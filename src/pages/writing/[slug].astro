@@ -50,8 +50,9 @@ const dateLabel = d.date ? d.date.toLocaleDateString('en-GB', { day: 'numeric', 
   .prose :global(img) { width: 100%; height: auto; margin: 0.4em 0 0.6em; border: 1px solid var(--ghost); border-radius: 8px; background: #ffffff; }
   .prose :global(p:has(> img)) { max-width: none; margin-bottom: 0.3em; }
   .prose :global(p > em:only-child) { display: block; font-size: 0.9rem; font-style: normal; color: var(--text-dim); }
-  .prose :global(table) { width: 100%; margin: 0 0 1.4em; border-collapse: collapse; font-size: 0.95rem; font-variant-numeric: tabular-nums; }
-  .prose :global(th), .prose :global(td) { padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--ghost); text-align: left; }
+  /* wide comparison tables scroll inside their own box instead of widening the page */
+  .prose :global(table) { display: block; max-width: 100%; overflow-x: auto; margin: 0 0 1.4em; border-collapse: collapse; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+  .prose :global(th), .prose :global(td) { min-width: 7rem; padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--ghost); text-align: left; vertical-align: top; }
   .prose :global(th) { color: var(--text-soft); font-weight: 600; border-bottom-color: rgba(102, 246, 255, 0.35); }
   .prose :global(blockquote) { margin: 0 0 1.2em; padding: 0.2em 0 0.2em 1.1rem; border-left: 1px solid var(--cyan); color: var(--text-soft); }
 </style>
