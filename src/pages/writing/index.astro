@@ -1,0 +1,158 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import PostRow from '../../components/PostRow.astro';
+
+const posts = (await getCollection('posts')).sort((a, b) => {
+  const da = a.data.date?.getTime() ?? 0;
+  const db = b.data.date?.getTime() ?? 0;
+  return db - da || a.data.order - b.data.order;
+});
+
+const published = posts.filter((p) => p.data.status === 'published').length;
+const planned = posts.length - published;
+
+const filters = [
+  { id: 'all', label: 'All' },
+  { id: 'article', label: 'Articles' },
+  { id: 'writeup', label: 'Writeups' },
+  { id: 'note', label: 'Notes' },
+];
+const topics = ['Sentinel', 'KQL', 'Defender XDR', 'Purple team', 'Threat intel', 'Vulnerability management', 'Incident response'];
+---
+<Base
+  title="Writing · Mohamed Fadhel Ghodhbane"
+  description="Articles on detection engineering and Microsoft security, incident writeups, and short notes by Mohamed Fadhel Ghodhbane."
+  current="writing"
+>
+  <section class="page-head" aria-labelledby="writing-title">
+    <canvas class="wake" data-wake="calm" aria-hidden="true"></canvas>
+    <div class="wrap head-inner">
+      <h1 id="writing-title" class="display-2">Writing</h1>
+      <p class="lede">Articles on detection engineering and Microsoft security, incident writeups, and short notes. The first posts are on the way.</p>
+      <div class="finder">
+        <label class="search-field">
+          <span class="sr-only">Search the writing</span>
+          <input id="post-search" type="search" placeholder="Search the writing" autocomplete="off" spellcheck="false" />
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="1.6" /><path d="m15.5 15.5 5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /></svg>
+        </label>
+        <div class="filters" role="group" aria-label="Filter by type">
+          {filters.map((f) => (
+            <button class="filter" type="button" id={`filter-${f.id}`} data-filter={f.id} aria-pressed={f.id === 'all' ? 'true' : 'false'}>{f.label}</button>
+          ))}
+        </div>
+      </div>
+      <div class="topics" role="group" aria-label="Topics">
+        <span class="topics-label">Topics</span>
+        {topics.map((t) => (
+          <button class="topic" type="button" id={`topic-${t.toLowerCase().replace(/\s+/g, '-')}`} data-topic={t.toLowerCase()} aria-pressed="false">{t}</button>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap list" aria-label="Posts">
+    <p class="count" data-count aria-live="polite">{planned} planned, {published} published</p>
+    <ul class="post-list" data-posts>
+      {posts.map((post) => <PostRow post={post} level="h2" />)}
+    </ul>
+    <p class="empty" data-empty hidden>Nothing surfaced for that search. Try another term, or clear the filters.</p>
+  </section>
+</Base>
+
+<style>
+  .page-head {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: clamp(4rem, 10vh, 6.5rem) 2.5rem;
+  }
+  .page-head .wake { z-index: -1; opacity: 0.85; }
+  .head-inner { display: grid; gap: 1.5rem; justify-items: start; }
+  .head-inner .lede { max-width: 52ch; }
+
+  .finder { display: flex; flex-wrap: wrap; align-items: center; gap: 0.9rem 1rem; width: 100%; padding-top: 0.8rem; }
+  .search-field {
+    position: relative;
+    flex: 1 1 18rem;
+    min-width: 0;
+    max-width: 30rem;
+    color: var(--text-dim);
+  }
+  .search-field input {
+    width: 100%;
+    height: 3.1rem;
+    padding: 0 3rem 0 1.1rem;
+    border: 1px solid var(--ghost);
+    border-radius: 8px;
+    background: rgba(10, 20, 34, 0.82);
+    color: var(--text);
+    font: inherit;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+  }
+  .search-field input::placeholder { color: var(--text-dim); }
+  .search-field input:focus {
+    border-color: rgba(102, 246, 255, 0.6);
+    box-shadow: 0 0 0 3px rgba(102, 246, 255, 0.14);
+  }
+  .search-field input::-webkit-search-cancel-button { filter: invert(0.7) sepia(1) hue-rotate(160deg); }
+  .search-field svg { position: absolute; right: 1rem; top: 50%; width: 1.15rem; height: 1.15rem; transform: translateY(-50%); pointer-events: none; }
+  .search-field:focus-within svg { color: var(--cyan); }
+
+  .filters { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .filter {
+    min-height: 2.6rem;
+    padding: 0 1rem;
+    border: 1px solid var(--ghost);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-soft);
+    font: 600 var(--step-control) / 1 var(--font-body);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 0.25s var(--ease-out), color 0.25s var(--ease-out), background-color 0.25s var(--ease-out);
+  }
+  .filter:hover { border-color: rgba(102, 246, 255, 0.5); color: var(--text); }
+  .filter[aria-pressed="true"] {
+    border-color: var(--wake-hover);
+    background: var(--wake);
+    color: #ffffff;
+  }
+
+  .topics { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; }
+  .topics-label {
+    margin-right: 0.4rem;
+    font: 600 0.72rem / 1 var(--font-body);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .topic {
+    padding: 0.28rem 0.75rem;
+    border: 1px solid var(--ghost);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-soft);
+    font: 500 0.82rem / 1.3 var(--font-body);
+    cursor: pointer;
+    transition: border-color 0.25s var(--ease-out), color 0.25s var(--ease-out);
+  }
+  .topic:hover { border-color: rgba(102, 246, 255, 0.45); color: var(--text); }
+  .topic[aria-pressed="true"] { border-color: var(--cyan); color: var(--cyan); }
+
+  @media (max-width: 620px) {
+    .filters { flex-wrap: nowrap; width: 100%; overflow-x: auto; gap: 0.4rem; scrollbar-width: none; }
+    .filter { flex: 1 0 auto; padding: 0 0.7rem; letter-spacing: 0.1em; }
+  }
+  .list { padding-block: 1rem 6rem; max-width: calc(52rem + var(--gutter) + var(--gutter-r)); margin-left: max(0px, calc((100% - 74rem - var(--gutter) - var(--gutter-r)) / 2)); }
+  .count {
+    padding-bottom: 0.9rem;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .empty { padding-block: 2.5rem; color: var(--text-soft); }
+</style>

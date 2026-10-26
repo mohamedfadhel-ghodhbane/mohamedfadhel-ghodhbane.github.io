@@ -1,0 +1,41 @@
+---
+import '@fontsource-variable/jost/wght.css';
+import '@fontsource-variable/albert-sans/wght.css';
+import '../styles/global.css';
+import wakeSrc from '../scripts/wake.js?raw';
+import siteSrc from '../scripts/site.js?raw';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  current?: 'home' | 'writing';
+}
+const { title, description, current = 'home' } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#03060b" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Header current={current} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <script is:inline set:html={wakeSrc}></script>
+    <script is:inline set:html={siteSrc}></script>
+  </body>
+</html>

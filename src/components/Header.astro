@@ -1,0 +1,20 @@
+---
+import Glyph from './Glyph.astro';
+interface Props { current: 'home' | 'writing' }
+const { current } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+---
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href={base} aria-label="Mohamed Fadhel Ghodhbane, home">
+      <Glyph class="brand-mark" />
+      <span class="brand-name"><span class="full">M. F. Ghodhbane</span><span class="short">MFG</span></span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href={`${base}#work`}>Work</a>
+      <a href={`${base}writing/`} aria-current={current === 'writing' ? 'page' : undefined}>Writing</a>
+      <a class="nav-optional" href={`${base}#projects`}>Projects</a>
+      <a href={`${base}#contact`}>Contact</a>
+    </nav>
+  </div>
+</header>

@@ -1,0 +1,268 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import WakeArrow from '../components/WakeArrow.astro';
+import Glyph from '../components/Glyph.astro';
+import PostRow from '../components/PostRow.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+const email = 'mohamedfadhel.ghodhbane@gmail.com';
+
+const byOrder = (a: { data: { order: number } }, b: { data: { order: number } }) => a.data.order - b.data.order;
+const posts = (await getCollection('posts')).sort(byOrder).slice(0, 3);
+const projects = (await getCollection('projects')).sort(byOrder);
+
+const services = [
+  { name: 'Security operations', text: 'SOC architecture and end-to-end tenant onboarding for Microsoft Sentinel and Defender XDR.' },
+  { name: 'Detection engineering', text: 'KQL rules managed as code and deployed through CI/CD, tuned for fewer false positives and wider MITRE ATT&CK coverage.' },
+  { name: 'Purple teaming', text: 'Emulating real adversary techniques against your detections, then writing rules for the gaps they expose.' },
+  { name: 'Incident response', text: 'Investigations from first triage through recovery and reporting, plus playbooks your team can reuse.' },
+  { name: 'Threat and vulnerability management', text: 'Threat intelligence fed into Sentinel, Tenable Nessus scanning, and critical findings driven to closure.' },
+  { name: 'Cloud and network hardening', text: 'Azure hardening against CIS and Microsoft benchmarks, firewalls and F5 WAF, and ISO/IEC 27001 audits.' },
+];
+
+const tools = ['Microsoft Sentinel', 'Defender XDR', 'KQL', 'MITRE ATT&CK', 'Azure', 'Tenable Nessus', 'Fortinet', 'F5 LTM & ASM', 'LogRhythm', 'Splunk'];
+---
+<Base
+  title="Mohamed Fadhel Ghodhbane · Cybersecurity engineer"
+  description="Cybersecurity engineer building detections and running security operations on Microsoft Sentinel and Defender XDR."
+>
+  <section class="hero" aria-labelledby="hero-title">
+    <canvas class="wake" data-wake="hero" aria-hidden="true"></canvas>
+    <div class="wrap hero-inner">
+      <div class="hero-copy">
+        <h1 id="hero-title" class="display"><span>Every move</span> <span>leaves a trace.</span></h1>
+        <p class="lede">I'm Mohamed Fadhel Ghodhbane, a cybersecurity engineer. I build detections and run security operations on Microsoft Sentinel and Defender XDR, so the movement that matters gets seen.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href={`mailto:${email}`}>Email me <WakeArrow /></a>
+          <a class="btn" href={`${base}writing/`}>Read the writing <WakeArrow /></a>
+        </div>
+      </div>
+      <div class="trace" data-trace aria-hidden="true">
+        <Glyph class="trace-mark" />
+        <p class="trace-title">Your movement</p>
+        <p class="trace-sub">Traced live on this page</p>
+        <p class="trace-data"><span class="trace-count" data-trace-count>0</span> events <span class="trace-sep"></span> <span data-trace-ago>no movement yet</span></p>
+      </div>
+    </div>
+    <p class="wrap hero-hint">
+      <span class="hint-fine">Move your cursor through the water.</span>
+      <span class="hint-touch">Drag a finger across the water.</span>
+    </p>
+  </section>
+
+  <section class="band" id="work" aria-labelledby="work-title">
+    <div class="wrap split">
+      <div class="split-head">
+        <h2 id="work-title">What I do</h2>
+        <p>I work where telemetry meets judgment: writing the rules that catch attackers, and responding when they fire.</p>
+        <p class="facts">2.5+ years across a multi-tenant SOC, a telecom operator's network, and corporate IT.</p>
+      </div>
+      <ul class="currents">
+        {services.map((s) => (
+          <li class="current">
+            <h3>{s.name}</h3>
+            <p>{s.text}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="band" id="projects" aria-labelledby="projects-title">
+    <div class="wrap split">
+      <div class="split-head">
+        <h2 id="projects-title">Projects</h2>
+        <p>Open-source tools and references in progress. Each one lights up here when it ships.</p>
+      </div>
+      <ul class="projects">
+        {projects.map((p) => (
+          <li class={`project ${p.data.status === 'published' ? 'is-live' : ''}`}>
+            <h3>{p.data.link ? <a href={p.data.link} target="_blank" rel="noopener">{p.data.title}</a> : p.data.title}</h3>
+            <span class={`state ${p.data.status === 'published' ? 'is-radiant' : ''}`}>{p.data.status === 'published' ? 'Live' : 'Planned'}</span>
+            <p>{p.data.summary}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="band" id="writing" aria-labelledby="writing-title">
+    <div class="wrap split">
+      <div class="split-head">
+        <h2 id="writing-title">Writing</h2>
+        <p>Articles, writeups, and notes from detection and response work. The first ones are on the way.</p>
+        <a class="link-wake" href={`${base}writing/`}>All writing <WakeArrow /></a>
+      </div>
+      <ul class="post-list">
+        {posts.map((post) => <PostRow post={post} />)}
+      </ul>
+    </div>
+  </section>
+
+  <section class="band band-quiet" id="background" aria-labelledby="background-title">
+    <div class="wrap split">
+      <div class="split-head">
+        <h2 id="background-title">Background</h2>
+      </div>
+      <div class="background">
+        <p>I'm a telecommunications engineer with a Master's-level degree from Sup'Com. Before focusing on detection and response, I ran firewalls, WAF and SIEM for a telecom operator, led ISO/IEC 27001 audits, and built servers and networks for a consulting firm.</p>
+        <p class="tools-lead">Tools I use most:</p>
+        <ul class="tools">
+          {tools.map((tool) => <li class="tag">{tool}</li>)}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="close" id="contact" aria-labelledby="contact-title">
+    <canvas class="wake" data-wake="close" aria-hidden="true"></canvas>
+    <div class="wrap close-inner">
+      <h2 id="contact-title" class="display-2">Seeing movement you can't explain?</h2>
+      <p class="lede">Email is the quickest way to reach me. I'm open to consulting work and full-time security roles.</p>
+      <div class="email-row">
+        <a class="email-big" id="email-address" href={`mailto:${email}`}>{email}</a>
+        <button class="btn btn-sm" type="button" id="copy-email" data-copy={email} data-copy-target="email-address"><span data-copy-label>Copy</span></button>
+      </div>
+      <div class="socials">
+        <a class="link-wake" href="https://linkedin.com/in/mohamed-fadhel-ghodhbane-5a5655202" target="_blank" rel="noopener">LinkedIn <WakeArrow /></a>
+        <a class="link-wake" href="https://github.com/mohamedfadhel-ghodhbane" target="_blank" rel="noopener">GitHub <WakeArrow /></a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: clamp(4.5rem, 10vh, 7.5rem) clamp(3rem, 7vh, 5rem);
+  }
+  .hero .wake { z-index: -1; }
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 7rem;
+    z-index: -1;
+    background: linear-gradient(to bottom, rgba(3, 6, 11, 0), var(--abyss));
+    pointer-events: none;
+  }
+  .hero-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 3rem;
+    align-items: start;
+  }
+  .hero-copy { display: grid; gap: 1.9rem; justify-items: start; }
+  .display span { display: block; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 0.9rem; padding-top: 0.4rem; }
+
+  .trace {
+    justify-self: end;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 0.85rem;
+    width: min(100%, 17rem);
+    margin-top: 0.75rem;
+    padding: 1rem 1.15rem 0.95rem;
+    border: 1px solid rgba(102, 246, 255, 0.2);
+    border-radius: 10px;
+    background: rgba(10, 20, 34, 0.94);
+    transition: border-color 0.5s var(--ease-out), background-color 0.5s var(--ease-out);
+  }
+  .trace.is-excited {
+    border-color: rgba(102, 246, 255, 0.6);
+    background: rgba(12, 26, 42, 0.96);
+  }
+  .trace :global(.trace-mark) { grid-row: span 2; width: 1.7rem; height: 1.7rem; align-self: center; }
+  .trace-title { font-weight: 600; font-size: 0.95rem; line-height: 1.3; color: var(--text); }
+  .trace-sub { font-size: 0.82rem; line-height: 1.35; color: var(--text-dim); }
+  .trace-data {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.6rem;
+    margin-top: 0.7rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid var(--ghost);
+    font-size: 0.84rem;
+    color: var(--text-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .trace-count { color: var(--cyan); font-weight: 600; }
+  .trace-sep { width: 3px; height: 3px; border-radius: 50%; background: var(--text-dim); }
+
+  .hero-hint {
+    margin-top: clamp(3rem, 9vh, 5rem);
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+    color: var(--text-dim);
+  }
+  .hint-touch { display: none; }
+  @media (hover: none) {
+    .hint-fine { display: none; }
+    .hint-touch { display: inline; }
+  }
+
+  .facts {
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--ghost);
+    color: var(--text) !important;
+    font-size: 0.98rem;
+  }
+
+  .projects { list-style: none; margin: 0; padding: 0; display: grid; }
+  .project {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.4rem 1.5rem;
+    padding-block: 1.45rem;
+    border-top: 1px dashed var(--ghost);
+  }
+  .project h3 { color: var(--text-soft); }
+  .project h3 a { text-decoration: none; }
+  .project.is-live h3 { color: var(--text); }
+  .project .state { grid-column: 2; grid-row: 1; align-self: center; }
+  .project p { grid-column: 1 / -1; color: var(--text-dim); max-width: 58ch; }
+  .project.is-live p { color: var(--text-soft); }
+
+  .background { display: grid; gap: 1.1rem; }
+  .background > p:first-child { font-size: 1.15rem; line-height: 1.6; max-width: 58ch; }
+  .tools-lead { padding-top: 0.6rem; color: var(--text-soft); }
+  .tools { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+  .close {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: clamp(6rem, 14vh, 9rem) clamp(8rem, 20vh, 12rem);
+    border-top: 1px solid var(--ghost-soft);
+  }
+  .close .wake { z-index: -1; }
+  .close-inner { display: grid; gap: 1.6rem; justify-items: start; }
+  .close-inner .display-2 { max-width: 15ch; }
+  .close-inner .lede { max-width: 44ch; }
+  .email-row { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.4rem; padding-top: 0.6rem; }
+  .email-big {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(1.2rem, 3vw, 1.85rem);
+    letter-spacing: 0.005em;
+    color: #eef8ff;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(102, 246, 255, 0.35);
+    overflow-wrap: anywhere;
+    transition: color 0.3s var(--ease-out), border-color 0.3s var(--ease-out);
+  }
+  .email-big:hover { color: var(--cyan); border-color: var(--cyan); }
+  .socials { display: flex; flex-wrap: wrap; gap: 1rem 2.25rem; }
+
+  @media (max-width: 860px) {
+    .hero-inner { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+    .trace { justify-self: start; }
+    .hero-hint { margin-top: clamp(9rem, 32vh, 14rem); }
+  }
+</style>

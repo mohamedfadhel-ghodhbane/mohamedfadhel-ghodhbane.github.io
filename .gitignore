@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.astro/
+.impeccable/
+PRODUCT.md
+.env
+.env.*
+.DS_Store
+Thumbs.db
+*.log

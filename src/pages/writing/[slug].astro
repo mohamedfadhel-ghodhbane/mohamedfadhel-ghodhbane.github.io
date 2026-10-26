@@ -1,0 +1,49 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import WakeArrow from '../../components/WakeArrow.astro';
+
+// Only published posts get a page; planned ones stay as entries on the writing index.
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', (p) => p.data.status === 'published');
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+const d = post.data;
+const typeLabel = { article: 'Article', writeup: 'Writeup', note: 'Note' }[d.type];
+const dateLabel = d.date ? d.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+---
+<Base title={`${d.title} · Mohamed Fadhel Ghodhbane`} description={d.summary} current="writing">
+  <article class="wrap article">
+    <a class="link-wake back" href={`${base}writing/`}>All writing <WakeArrow /></a>
+    <header class="article-head">
+      <p class="article-meta">{typeLabel}{dateLabel && <> · <time datetime={d.date?.toISOString()}>{dateLabel}</time></>}</p>
+      <h1 class="display-2">{d.title}</h1>
+      <p class="lede">{d.summary}</p>
+      {d.tags.length > 0 && <div class="post-tags">{d.tags.map((t) => <span class="tag">{t}</span>)}</div>}
+    </header>
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+</Base>
+
+<style>
+  .article { max-width: calc(46rem + var(--gutter) + var(--gutter-r)); padding-block: 4rem 6rem; display: grid; gap: 2.5rem; }
+  .back { justify-self: start; }
+  .article-head { display: grid; gap: 1.1rem; }
+  .article-meta { font: 600 0.72rem / 1 var(--font-body); letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); }
+  .article-head .lede { max-width: none; }
+  .prose { font-size: 1.08rem; line-height: 1.75; color: var(--text); }
+  .prose :global(h2) { margin: 2.6em 0 0.7em; font-size: 1.75rem; }
+  .prose :global(h3) { margin: 2em 0 0.5em; }
+  .prose :global(p), .prose :global(ul), .prose :global(ol) { margin: 0 0 1.15em; max-width: 68ch; }
+  .prose :global(a) { color: var(--cyan); }
+  .prose :global(code) { font-family: var(--font-mono); font-size: 0.9em; padding: 0.1em 0.35em; border-radius: 4px; background: var(--deep); }
+  .prose :global(pre) { margin: 0 0 1.4em; padding: 1.1rem 1.25rem; border: 1px solid var(--ghost); border-radius: 8px; overflow-x: auto; font-size: 0.9rem; line-height: 1.6; }
+  .prose :global(pre code) { padding: 0; background: none; }
+  .prose :global(blockquote) { margin: 0 0 1.2em; padding: 0.2em 0 0.2em 1.1rem; border-left: 1px solid var(--cyan); color: var(--text-soft); }
+</style>
