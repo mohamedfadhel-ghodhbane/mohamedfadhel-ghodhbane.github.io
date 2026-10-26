@@ -32,7 +32,9 @@ const dateLabel = d.date ? d.date.toLocaleDateString('en-GB', { day: 'numeric', 
 </Base>
 
 <style>
-  .article { max-width: calc(46rem + var(--gutter) + var(--gutter-r)); padding-block: 4rem 6rem; display: grid; gap: 2.5rem; }
+  /* minmax(0, 1fr) keeps long code lines scrolling inside their block instead of widening the page */
+  .article { max-width: calc(46rem + var(--gutter) + var(--gutter-r)); padding-block: 4rem 6rem; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+  .article-head, .prose { min-width: 0; }
   .back { justify-self: start; }
   .article-head { display: grid; gap: 1.1rem; }
   .article-meta { font: 600 0.72rem / 1 var(--font-body); letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); }
@@ -45,5 +47,11 @@ const dateLabel = d.date ? d.date.toLocaleDateString('en-GB', { day: 'numeric', 
   .prose :global(code) { font-family: var(--font-mono); font-size: 0.9em; padding: 0.1em 0.35em; border-radius: 4px; background: var(--deep); }
   .prose :global(pre) { margin: 0 0 1.4em; padding: 1.1rem 1.25rem; border: 1px solid var(--ghost); border-radius: 8px; overflow-x: auto; font-size: 0.9rem; line-height: 1.6; }
   .prose :global(pre code) { padding: 0; background: none; }
+  .prose :global(img) { width: 100%; height: auto; margin: 0.4em 0 0.6em; border: 1px solid var(--ghost); border-radius: 8px; background: #ffffff; }
+  .prose :global(p:has(> img)) { max-width: none; margin-bottom: 0.3em; }
+  .prose :global(p > em:only-child) { display: block; font-size: 0.9rem; font-style: normal; color: var(--text-dim); }
+  .prose :global(table) { width: 100%; margin: 0 0 1.4em; border-collapse: collapse; font-size: 0.95rem; font-variant-numeric: tabular-nums; }
+  .prose :global(th), .prose :global(td) { padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--ghost); text-align: left; }
+  .prose :global(th) { color: var(--text-soft); font-weight: 600; border-bottom-color: rgba(102, 246, 255, 0.35); }
   .prose :global(blockquote) { margin: 0 0 1.2em; padding: 0.2em 0 0.2em 1.1rem; border-left: 1px solid var(--cyan); color: var(--text-soft); }
 </style>

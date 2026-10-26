@@ -9,7 +9,10 @@ const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 const email = 'mohamedfadhel.ghodhbane@gmail.com';
 
 const byOrder = (a: { data: { order: number } }, b: { data: { order: number } }) => a.data.order - b.data.order;
-const posts = (await getCollection('posts')).sort(byOrder).slice(0, 3);
+// published posts first (newest on top), then planned topics in their set order
+const posts = (await getCollection('posts'))
+  .sort((a, b) => (b.data.date?.getTime() ?? 0) - (a.data.date?.getTime() ?? 0) || a.data.order - b.data.order)
+  .slice(0, 3);
 const projects = (await getCollection('projects')).sort(byOrder);
 
 const services = [
@@ -91,7 +94,7 @@ const tools = ['Microsoft Sentinel', 'Defender XDR', 'KQL', 'MITRE ATT&CK', 'Azu
     <div class="wrap split">
       <div class="split-head">
         <h2 id="writing-title">Writing</h2>
-        <p>Articles, writeups, and notes from detection and response work. The first ones are on the way.</p>
+        <p>Articles, writeups, and notes from detection and response work.</p>
         <a class="link-wake" href={`${base}writing/`}>All writing <WakeArrow /></a>
       </div>
       <ul class="post-list">
