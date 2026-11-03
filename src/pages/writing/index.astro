@@ -30,7 +30,6 @@ const entries = (n: number) => `${n} ${n === 1 ? 'entry' : 'entries'}`;
   current="writing"
 >
   <section class="page-head" aria-labelledby="writing-title">
-    <canvas class="wake" data-wake="calm" aria-hidden="true"></canvas>
     <div class="wrap head-inner">
       <h1 id="writing-title" class="display-2">Writing</h1>
       <p class="lede">Articles on detection engineering and Microsoft security, incident writeups, and short notes. More are on the way.</p>
@@ -83,13 +82,7 @@ const entries = (n: number) => `${n} ${n === 1 ? 'entry' : 'entries'}`;
 </Base>
 
 <style>
-  .page-head {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    padding-block: clamp(4rem, 10vh, 6.5rem) 2.5rem;
-  }
-  .page-head .wake { z-index: -1; opacity: 0.85; }
+  .page-head { padding-block: clamp(4rem, 10vh, 6rem) 2.5rem; }
   .head-inner { display: grid; gap: 1.5rem; justify-items: start; }
   .head-inner .lede { max-width: 52ch; }
 
@@ -105,9 +98,9 @@ const entries = (n: number) => `${n} ${n === 1 ? 'entry' : 'entries'}`;
     width: 100%;
     height: 3.1rem;
     padding: 0 3rem 0 1.1rem;
-    border: 1px solid var(--ghost);
+    border: 1px solid var(--rule);
     border-radius: 8px;
-    background: rgba(10, 20, 34, 0.82);
+    background: var(--code-bg);
     color: var(--text);
     font: inherit;
     font-size: 1rem;
@@ -116,45 +109,40 @@ const entries = (n: number) => `${n} ${n === 1 ? 'entry' : 'entries'}`;
   }
   .search-field input::placeholder { color: var(--text-dim); }
   .search-field input:focus {
-    border-color: rgba(102, 246, 255, 0.6);
-    box-shadow: 0 0 0 3px rgba(102, 246, 255, 0.14);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
   }
-  .search-field input::-webkit-search-cancel-button { filter: invert(0.7) sepia(1) hue-rotate(160deg); }
   .search-field svg { position: absolute; right: 1rem; top: 50%; width: 1.15rem; height: 1.15rem; transform: translateY(-50%); pointer-events: none; }
-  .search-field:focus-within svg { color: var(--cyan); }
+  .search-field:focus-within svg { color: var(--accent); }
 
   .filters { display: flex; flex-wrap: wrap; gap: 0.5rem; }
   .filter {
     min-height: 2.6rem;
     padding: 0 1rem;
-    border: 1px solid var(--ghost);
+    border: 1px solid var(--rule);
     border-radius: 6px;
     background: transparent;
     color: var(--text-soft);
-    font: 600 var(--step-control) / 1 var(--font-body);
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
+    font: 500 0.92rem / 1 var(--font-body);
     cursor: pointer;
     transition: border-color 0.25s var(--ease-out), color 0.25s var(--ease-out), background-color 0.25s var(--ease-out);
   }
-  .filter:hover { border-color: rgba(102, 246, 255, 0.5); color: var(--text); }
+  .filter:hover { border-color: var(--text-dim); color: var(--text); }
   .filter[aria-pressed="true"] {
-    border-color: var(--wake-hover);
-    background: var(--wake);
-    color: #ffffff;
+    border-color: var(--text);
+    background: var(--text);
+    color: var(--paper);
   }
 
   .topics { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; }
   .topics-label {
     margin-right: 0.4rem;
-    font: 600 0.72rem / 1 var(--font-body);
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
+    font: 500 0.88rem / 1 var(--font-body);
     color: var(--text-dim);
   }
   .topic {
     padding: 0.28rem 0.75rem;
-    border: 1px solid var(--ghost);
+    border: 1px solid var(--rule);
     border-radius: 999px;
     background: transparent;
     color: var(--text-soft);
@@ -162,12 +150,12 @@ const entries = (n: number) => `${n} ${n === 1 ? 'entry' : 'entries'}`;
     cursor: pointer;
     transition: border-color 0.25s var(--ease-out), color 0.25s var(--ease-out);
   }
-  .topic:hover { border-color: rgba(102, 246, 255, 0.45); color: var(--text); }
-  .topic[aria-pressed="true"] { border-color: var(--cyan); color: var(--cyan); }
+  .topic:hover { border-color: var(--text-dim); color: var(--text); }
+  .topic[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-hover); }
 
   @media (max-width: 620px) {
     .filters { flex-wrap: nowrap; width: 100%; overflow-x: auto; gap: 0.4rem; scrollbar-width: none; }
-    .filter { flex: 1 0 auto; padding: 0 0.7rem; letter-spacing: 0.1em; }
+    .filter { flex: 1 0 auto; padding: 0 0.7rem; }
   }
   .list, .upcoming { max-width: calc(52rem + var(--gutter) + var(--gutter-r)); margin-left: max(0px, calc((100% - 74rem - var(--gutter) - var(--gutter-r)) / 2)); }
   .list { padding-block: 1rem 3.5rem; }
@@ -182,10 +170,8 @@ const entries = (n: number) => `${n} ${n === 1 ? 'entry' : 'entries'}`;
   .upcoming { padding-bottom: 6rem; }
   .upcoming-title {
     padding-bottom: 0.9rem;
-    font: 600 0.72rem / 1 var(--font-body);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--text-dim);
+    font: 500 1.35rem / 1.2 var(--font-display);
+    color: var(--text);
   }
   .upcoming-list { list-style: none; margin: 0; padding: 0; display: grid; }
   .upcoming-list li {
@@ -195,7 +181,7 @@ const entries = (n: number) => `${n} ${n === 1 ? 'entry' : 'entries'}`;
     justify-content: space-between;
     gap: 0.45rem 1.5rem;
     padding-block: 1.05rem;
-    border-top: 1px dashed var(--ghost);
+    border-top: 1px dashed var(--rule);
   }
   .upcoming-name { font-family: var(--font-display); font-size: 1.12rem; line-height: 1.35; color: var(--text-soft); }
 </style>

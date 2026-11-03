@@ -6,4 +6,6 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
   site: 'https://mohamedfadhel-ghodhbane.github.io',
   build: { inlineStylesheets: 'always' },
+  // light code theme to sit on the paper background
+  markdown: { shikiConfig: { theme: 'github-light-default' } },
 });

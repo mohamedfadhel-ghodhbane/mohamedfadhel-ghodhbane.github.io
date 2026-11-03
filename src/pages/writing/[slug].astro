@@ -57,18 +57,19 @@ const schema = {
   .article-head, .prose { min-width: 0; }
   .back { justify-self: start; }
   .article-head { display: grid; gap: 1.1rem; }
-  .article-meta { font: 600 0.72rem / 1 var(--font-body); letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); }
+  .article-meta { font: 500 0.92rem / 1.3 var(--font-body); color: var(--text-dim); }
   .article-head .lede { max-width: none; }
   .prose { font-size: 1.08rem; line-height: 1.75; color: var(--text); }
   .prose :global(h2) { margin: 2.6em 0 0.7em; font-size: 1.75rem; }
   .prose :global(h3) { margin: 2em 0 0.5em; }
   .prose :global(p), .prose :global(ul), .prose :global(ol) { margin: 0 0 1.15em; max-width: 68ch; }
-  .prose :global(a) { color: var(--cyan); }
-  .prose :global(code) { font-family: var(--font-mono); font-size: 0.9em; padding: 0.1em 0.35em; border-radius: 4px; background: var(--deep); }
-  .prose :global(pre) { margin: 0 0 1.4em; padding: 1.1rem 1.25rem; border: 1px solid var(--ghost); border-radius: 8px; overflow-x: auto; font-size: 0.9rem; line-height: 1.6; }
+  .prose :global(a) { color: var(--accent); }
+  .prose :global(a:hover) { color: var(--accent-hover); }
+  .prose :global(code) { font-family: var(--font-mono); font-size: 0.9em; padding: 0.1em 0.35em; border-radius: 4px; background: var(--panel); }
+  .prose :global(pre) { margin: 0 0 1.4em; padding: 1.1rem 1.25rem; border: 1px solid var(--rule); border-radius: 8px; overflow-x: auto; font-size: 0.9rem; line-height: 1.6; background-color: var(--code-bg) !important; }
   .prose :global(pre code) { padding: 0; background: none; }
   /* the bar site.js adds above each code block: language on the left, copy on the right */
-  .prose :global(.code-block) { margin: 0 0 1.4em; border: 1px solid var(--ghost); border-radius: 8px; overflow: hidden; }
+  .prose :global(.code-block) { margin: 0 0 1.4em; border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
   .prose :global(.code-block pre) { margin: 0; border: 0; border-radius: 0; }
   .prose :global(.code-bar) {
     display: flex;
@@ -76,10 +77,10 @@ const schema = {
     justify-content: space-between;
     gap: 1rem;
     padding: 0.3rem 0.4rem 0.3rem 1.25rem;
-    border-bottom: 1px solid var(--ghost);
-    background: var(--deep);
+    border-bottom: 1px solid var(--rule);
+    background: var(--panel);
   }
-  .prose :global(.code-lang) { font: 600 0.68rem / 1 var(--font-body); letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); }
+  .prose :global(.code-lang) { font: 600 0.8rem / 1 var(--font-body); color: var(--text-dim); }
   .prose :global(.code-copy) {
     min-height: 2.1rem;
     padding: 0 0.85rem;
@@ -87,19 +88,17 @@ const schema = {
     border-radius: 5px;
     background: transparent;
     color: var(--text-soft);
-    font: 600 0.68rem / 1 var(--font-body);
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
+    font: 600 0.8rem / 1 var(--font-body);
     cursor: pointer;
     transition: border-color 0.25s var(--ease-out), color 0.25s var(--ease-out);
   }
-  .prose :global(.code-copy:hover) { border-color: rgba(102, 246, 255, 0.45); color: var(--text); }
-  .prose :global(img) { width: 100%; height: auto; margin: 0.4em 0 0.6em; border: 1px solid var(--ghost); border-radius: 8px; background: #ffffff; }
+  .prose :global(.code-copy:hover) { border-color: var(--rule); color: var(--accent); }
+  .prose :global(img) { width: 100%; height: auto; margin: 0.4em 0 0.6em; border: 1px solid var(--rule); border-radius: 8px; background: #ffffff; }
   .prose :global(p:has(> img)) { max-width: none; margin-bottom: 0.3em; }
   .prose :global(p > em:only-child) { display: block; font-size: 0.9rem; font-style: normal; color: var(--text-dim); }
   /* wide comparison tables scroll inside their own box instead of widening the page */
   .prose :global(table) { display: block; max-width: 100%; overflow-x: auto; margin: 0 0 1.4em; border-collapse: collapse; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
-  .prose :global(th), .prose :global(td) { min-width: 7rem; padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--ghost); text-align: left; vertical-align: top; }
-  .prose :global(th) { color: var(--text-soft); font-weight: 600; border-bottom-color: rgba(102, 246, 255, 0.35); }
-  .prose :global(blockquote) { margin: 0 0 1.2em; padding: 0.2em 0 0.2em 1.1rem; border-left: 1px solid var(--cyan); color: var(--text-soft); }
+  .prose :global(th), .prose :global(td) { min-width: 7rem; padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top; }
+  .prose :global(th) { color: var(--text-soft); font-weight: 600; border-bottom-color: var(--text-dim); }
+  .prose :global(blockquote) { margin: 0 0 1.2em; padding: 0.2em 0 0.2em 1.1rem; border-left: 2px solid var(--accent); color: var(--text-soft); }
 </style>

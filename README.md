@@ -46,4 +46,4 @@ Every page carries a canonical link, Open Graph and Twitter tags, and the shared
 
 ## Design
 
-The palette, type, and controls live in `src/styles/global.css`. The plankton wake is `src/scripts/wake.js`: particles drift along a current and light up under the visitor's cursor or finger, and it renders a single still frame when the visitor prefers reduced motion. On narrow screens it draws at 30 fps with fewer particles to save battery.
+The look is "Paper": a warm off-white background, ink text, hairline rules and one rust accent, with Newsreader serif headings and Albert Sans body text. The palette, type and controls live in `src/styles/global.css`, and article code blocks use Shiki's `github-light` theme (`astro.config.mjs`). The home page hero has a quiet animation, `src/scripts/wake.js`: rust specks drift along a current and darken under the visitor's cursor or finger. It renders one still frame when the visitor prefers reduced motion, and draws at 30 fps with fewer specks on narrow screens.
