@@ -4,16 +4,15 @@ import Base from '../layouts/Base.astro';
 import WakeArrow from '../components/WakeArrow.astro';
 import Glyph from '../components/Glyph.astro';
 import PostRow from '../components/PostRow.astro';
-
-const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
-const email = 'mohamedfadhel.ghodhbane@gmail.com';
+import { BASE as base, EMAIL as email, NAME, JOB_TITLE, HOME, PERSON_ID, LINKEDIN, GITHUB } from '../lib/site';
 
 const byOrder = (a: { data: { order: number } }, b: { data: { order: number } }) => a.data.order - b.data.order;
-// published posts first (newest on top), then planned topics in their set order
-const posts = (await getCollection('posts'))
+const isPublished = (entry: { data: { status: string } }) => entry.data.status === 'published';
+// only finished work shows here; planned posts and projects stay in the content folder until they ship
+const posts = (await getCollection('posts', isPublished))
   .sort((a, b) => (b.data.date?.getTime() ?? 0) - (a.data.date?.getTime() ?? 0) || a.data.order - b.data.order)
   .slice(0, 3);
-const projects = (await getCollection('projects')).sort(byOrder);
+const projects = (await getCollection('projects', isPublished)).sort(byOrder);
 
 const services = [
   { name: 'Security operations', text: 'SOC architecture and end-to-end tenant onboarding for Microsoft Sentinel and Defender XDR.' },
@@ -25,11 +24,29 @@ const services = [
 ];
 
 const tools = ['Microsoft Sentinel', 'Defender XDR', 'KQL', 'MITRE ATT&CK', 'Azure', 'Tenable Nessus', 'Fortinet', 'F5 LTM & ASM', 'LogRhythm', 'Splunk'];
+const description = 'Cybersecurity engineer building detections and running security operations on Microsoft Sentinel and Defender XDR.';
+
+// tells search engines who the site belongs to and which profiles are the same person
+const schema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Person',
+      '@id': PERSON_ID,
+      name: NAME,
+      url: HOME,
+      jobTitle: JOB_TITLE,
+      description,
+      email: `mailto:${email}`,
+      sameAs: [LINKEDIN, GITHUB],
+      knowsAbout: ['Microsoft Sentinel', 'Microsoft Defender XDR', 'KQL', 'Detection engineering', 'Security operations', 'Incident response', 'Purple teaming', 'Threat intelligence', 'Vulnerability management'],
+      alumniOf: { '@type': 'CollegeOrUniversity', name: "Higher School of Communication of Tunis (Sup'Com)" },
+    },
+    { '@type': 'WebSite', '@id': `${HOME}#website`, url: HOME, name: NAME, inLanguage: 'en', publisher: { '@id': PERSON_ID } },
+  ],
+};
 ---
-<Base
-  title="Mohamed Fadhel Ghodhbane · Cybersecurity engineer"
-  description="Cybersecurity engineer building detections and running security operations on Microsoft Sentinel and Defender XDR."
->
+<Base title={`${NAME} · ${JOB_TITLE}`} description={description} schema={schema}>
   <section class="hero" aria-labelledby="hero-title">
     <canvas class="wake" data-wake="hero" aria-hidden="true"></canvas>
     <div class="wrap hero-inner">
@@ -72,23 +89,25 @@ const tools = ['Microsoft Sentinel', 'Defender XDR', 'KQL', 'MITRE ATT&CK', 'Azu
     </div>
   </section>
 
-  <section class="band" id="projects" aria-labelledby="projects-title">
-    <div class="wrap split">
-      <div class="split-head">
-        <h2 id="projects-title">Projects</h2>
-        <p>Open-source tools and references in progress. Each one lights up here when it ships.</p>
+  {projects.length > 0 && (
+    <section class="band" id="projects" aria-labelledby="projects-title">
+      <div class="wrap split">
+        <div class="split-head">
+          <h2 id="projects-title">Projects</h2>
+          <p>Open-source tools and references I maintain.</p>
+        </div>
+        <ul class="projects">
+          {projects.map((p) => (
+            <li class="project">
+              <h3>{p.data.link ? <a href={p.data.link} target="_blank" rel="noopener">{p.data.title}</a> : p.data.title}</h3>
+              <span class="state is-radiant">Live</span>
+              <p>{p.data.summary}</p>
+            </li>
+          ))}
+        </ul>
       </div>
-      <ul class="projects">
-        {projects.map((p) => (
-          <li class={`project ${p.data.status === 'published' ? 'is-live' : ''}`}>
-            <h3>{p.data.link ? <a href={p.data.link} target="_blank" rel="noopener">{p.data.title}</a> : p.data.title}</h3>
-            <span class={`state ${p.data.status === 'published' ? 'is-radiant' : ''}`}>{p.data.status === 'published' ? 'Live' : 'Planned'}</span>
-            <p>{p.data.summary}</p>
-          </li>
-        ))}
-      </ul>
-    </div>
-  </section>
+    </section>
+  )}
 
   <section class="band" id="writing" aria-labelledby="writing-title">
     <div class="wrap split">
@@ -128,8 +147,8 @@ const tools = ['Microsoft Sentinel', 'Defender XDR', 'KQL', 'MITRE ATT&CK', 'Azu
         <button class="btn btn-sm" type="button" id="copy-email" data-copy={email} data-copy-target="email-address"><span data-copy-label>Copy</span></button>
       </div>
       <div class="socials">
-        <a class="link-wake" href="https://linkedin.com/in/mohamed-fadhel-ghodhbane-5a5655202" target="_blank" rel="noopener">LinkedIn <WakeArrow /></a>
-        <a class="link-wake" href="https://github.com/mohamedfadhel-ghodhbane" target="_blank" rel="noopener">GitHub <WakeArrow /></a>
+        <a class="link-wake" href={LINKEDIN} target="_blank" rel="noopener">LinkedIn <WakeArrow /></a>
+        <a class="link-wake" href={GITHUB} target="_blank" rel="noopener">GitHub <WakeArrow /></a>
       </div>
     </div>
   </section>
@@ -225,12 +244,10 @@ const tools = ['Microsoft Sentinel', 'Defender XDR', 'KQL', 'MITRE ATT&CK', 'Azu
     padding-block: 1.45rem;
     border-top: 1px dashed var(--ghost);
   }
-  .project h3 { color: var(--text-soft); }
   .project h3 a { text-decoration: none; }
-  .project.is-live h3 { color: var(--text); }
+  .project h3 a:hover { color: var(--cyan); }
   .project .state { grid-column: 2; grid-row: 1; align-self: center; }
-  .project p { grid-column: 1 / -1; color: var(--text-dim); max-width: 58ch; }
-  .project.is-live p { color: var(--text-soft); }
+  .project p { grid-column: 1 / -1; color: var(--text-soft); max-width: 58ch; }
 
   .background { display: grid; gap: 1.1rem; }
   .background > p:first-child { font-size: 1.15rem; line-height: 1.6; max-width: 58ch; }

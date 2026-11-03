@@ -310,6 +310,7 @@ p { margin: 0; }
 .post-summary { color: var(--text-soft); max-width: 62ch; }
 .post-tags { display: flex; flex-wrap: wrap; gap: 0.45rem; padding-top: 0.2rem; }
 .post-meta .post-type { color: var(--text); }
+.post-time { margin-right: 0.3rem; font-size: 0.82rem; color: var(--text-dim); font-variant-numeric: tabular-nums; }
 mark {
   background: transparent;
   color: var(--cyan);

@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import WakeArrow from '../../components/WakeArrow.astro';
+import { BASE as base, NAME, HOME, PERSON_ID, OG_IMAGE, wordCount, readingMinutes } from '../../lib/site';
 
 // Only published posts get a page; planned ones stay as entries on the writing index.
 export async function getStaticPaths() {
@@ -11,16 +12,35 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content } = await render(post);
-const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 const d = post.data;
 const typeLabel = { article: 'Article', writeup: 'Writeup', note: 'Note' }[d.type];
 const dateLabel = d.date ? d.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+const minutes = readingMinutes(post.body);
+const url = new URL(`${base}writing/${post.id}/`, Astro.site).href;
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  '@id': `${url}#article`,
+  headline: d.title,
+  description: d.summary,
+  url,
+  mainEntityOfPage: url,
+  image: OG_IMAGE,
+  datePublished: d.date?.toISOString(),
+  dateModified: d.date?.toISOString(),
+  author: { '@type': 'Person', '@id': PERSON_ID, name: NAME, url: HOME },
+  keywords: d.tags.join(', '),
+  wordCount: wordCount(post.body),
+  timeRequired: `PT${minutes}M`,
+  inLanguage: 'en',
+};
 ---
-<Base title={`${d.title} · Mohamed Fadhel Ghodhbane`} description={d.summary} current="writing">
+<Base title={`${d.title} · ${NAME}`} description={d.summary} current="writing" type="article" published={d.date} tags={d.tags} schema={schema}>
   <article class="wrap article">
     <a class="link-wake back" href={`${base}writing/`}>All writing <WakeArrow /></a>
     <header class="article-head">
-      <p class="article-meta">{typeLabel}{dateLabel && <> · <time datetime={d.date?.toISOString()}>{dateLabel}</time></>}</p>
+      <p class="article-meta">{typeLabel}{dateLabel && <> · <time datetime={d.date?.toISOString()}>{dateLabel}</time></>} · {minutes} min read</p>
       <h1 class="display-2">{d.title}</h1>
       <p class="lede">{d.summary}</p>
       {d.tags.length > 0 && <div class="post-tags">{d.tags.map((t) => <span class="tag">{t}</span>)}</div>}
@@ -47,6 +67,33 @@ const dateLabel = d.date ? d.date.toLocaleDateString('en-GB', { day: 'numeric', 
   .prose :global(code) { font-family: var(--font-mono); font-size: 0.9em; padding: 0.1em 0.35em; border-radius: 4px; background: var(--deep); }
   .prose :global(pre) { margin: 0 0 1.4em; padding: 1.1rem 1.25rem; border: 1px solid var(--ghost); border-radius: 8px; overflow-x: auto; font-size: 0.9rem; line-height: 1.6; }
   .prose :global(pre code) { padding: 0; background: none; }
+  /* the bar site.js adds above each code block: language on the left, copy on the right */
+  .prose :global(.code-block) { margin: 0 0 1.4em; border: 1px solid var(--ghost); border-radius: 8px; overflow: hidden; }
+  .prose :global(.code-block pre) { margin: 0; border: 0; border-radius: 0; }
+  .prose :global(.code-bar) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.3rem 0.4rem 0.3rem 1.25rem;
+    border-bottom: 1px solid var(--ghost);
+    background: var(--deep);
+  }
+  .prose :global(.code-lang) { font: 600 0.68rem / 1 var(--font-body); letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); }
+  .prose :global(.code-copy) {
+    min-height: 2.1rem;
+    padding: 0 0.85rem;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--text-soft);
+    font: 600 0.68rem / 1 var(--font-body);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 0.25s var(--ease-out), color 0.25s var(--ease-out);
+  }
+  .prose :global(.code-copy:hover) { border-color: rgba(102, 246, 255, 0.45); color: var(--text); }
   .prose :global(img) { width: 100%; height: auto; margin: 0.4em 0 0.6em; border: 1px solid var(--ghost); border-radius: 8px; background: #ffffff; }
   .prose :global(p:has(> img)) { max-width: none; margin-bottom: 0.3em; }
   .prose :global(p > em:only-child) { display: block; font-size: 0.9rem; font-style: normal; color: var(--text-dim); }

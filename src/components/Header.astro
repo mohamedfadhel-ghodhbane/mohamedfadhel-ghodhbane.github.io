@@ -1,19 +1,22 @@
 ---
+import { getCollection } from 'astro:content';
 import Glyph from './Glyph.astro';
+import { BASE as base } from '../lib/site';
 interface Props { current: 'home' | 'writing' }
 const { current } = Astro.props;
-const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+// the Projects link appears once the home page has a shipped project to point at
+const hasProjects = (await getCollection('projects', (p) => p.data.status === 'published')).length > 0;
 ---
 <header class="site-header">
   <div class="wrap header-inner">
-    <a class="brand" href={base} aria-label="Mohamed Fadhel Ghodhbane, home">
+    <a class="brand" href={base}>
       <Glyph class="brand-mark" />
       <span class="brand-name"><span class="full">M. F. Ghodhbane</span><span class="short">MFG</span></span>
     </a>
     <nav class="nav" aria-label="Main">
       <a href={`${base}#work`}>Work</a>
       <a href={`${base}writing/`} aria-current={current === 'writing' ? 'page' : undefined}>Writing</a>
-      <a class="nav-optional" href={`${base}#projects`}>Projects</a>
+      {hasProjects && <a class="nav-optional" href={`${base}#projects`}>Projects</a>}
       <a href={`${base}#contact`}>Contact</a>
     </nav>
   </div>

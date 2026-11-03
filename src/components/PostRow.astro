@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { readingMinutes } from '../lib/site';
 interface Props { post: CollectionEntry<'posts'>; level?: 'h2' | 'h3' }
 const { post, level = 'h3' } = Astro.props;
 const Heading = level;
@@ -8,6 +9,7 @@ const d = post.data;
 const published = d.status === 'published';
 const typeLabel = { article: 'Article', writeup: 'Writeup', note: 'Note' }[d.type];
 const dateLabel = d.date ? d.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+const minutes = readingMinutes(post.body);
 ---
 <li class="post" data-type={d.type}>
   <Heading class="post-title">
@@ -21,6 +23,7 @@ const dateLabel = d.date ? d.date.toLocaleDateString('en-GB', { day: 'numeric', 
     {published
       ? <span class="state is-radiant">{dateLabel || 'Published'}</span>
       : <span class="state">Planned</span>}
+    {published && <span class="post-time">{minutes} min read</span>}
     {d.tags.map((tag) => <span class="tag" data-hl>{tag}</span>)}
   </div>
 </li>

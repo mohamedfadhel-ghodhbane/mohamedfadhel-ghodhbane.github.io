@@ -3,22 +3,26 @@ import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import PostRow from '../../components/PostRow.astro';
 
-const posts = (await getCollection('posts')).sort((a, b) => {
-  const da = a.data.date?.getTime() ?? 0;
-  const db = b.data.date?.getTime() ?? 0;
-  return db - da || a.data.order - b.data.order;
-});
+const all = await getCollection('posts');
+const posts = all
+  .filter((p) => p.data.status === 'published')
+  .sort((a, b) => (b.data.date?.getTime() ?? 0) - (a.data.date?.getTime() ?? 0) || a.data.order - b.data.order);
+// a short look ahead instead of every planned topic
+const upcoming = all.filter((p) => p.data.status === 'planned').sort((a, b) => a.data.order - b.data.order).slice(0, 3);
+const typeLabel = { article: 'Article', writeup: 'Writeup', note: 'Note' };
 
-const published = posts.filter((p) => p.data.status === 'published').length;
-const planned = posts.length - published;
-
+// filters and topics only appear when they would match something
+const types = new Set(posts.map((p) => p.data.type));
 const filters = [
   { id: 'all', label: 'All' },
   { id: 'article', label: 'Articles' },
   { id: 'writeup', label: 'Writeups' },
   { id: 'note', label: 'Notes' },
-];
-const topics = ['Sentinel', 'KQL', 'Defender XDR', 'Purple team', 'Threat intel', 'Vulnerability management', 'Incident response'];
+].filter((f) => f.id === 'all' || types.has(f.id as 'article' | 'writeup' | 'note'));
+const searchable = posts.map((p) => [p.data.title, p.data.summary, typeLabel[p.data.type], ...p.data.tags].join(' ').toLowerCase());
+const topics = ['Sentinel', 'KQL', 'Defender XDR', 'Purple team', 'Threat intel', 'SOC metrics', 'Vulnerability management', 'Incident response']
+  .filter((t) => searchable.some((text) => text.includes(t.toLowerCase())));
+const entries = (n: number) => `${n} ${n === 1 ? 'entry' : 'entries'}`;
 ---
 <Base
   title="Writing · Mohamed Fadhel Ghodhbane"
@@ -36,28 +40,46 @@ const topics = ['Sentinel', 'KQL', 'Defender XDR', 'Purple team', 'Threat intel'
           <input id="post-search" type="search" placeholder="Search the writing" autocomplete="off" spellcheck="false" />
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="1.6" /><path d="m15.5 15.5 5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /></svg>
         </label>
-        <div class="filters" role="group" aria-label="Filter by type">
-          {filters.map((f) => (
-            <button class="filter" type="button" id={`filter-${f.id}`} data-filter={f.id} aria-pressed={f.id === 'all' ? 'true' : 'false'}>{f.label}</button>
+        {filters.length > 2 && (
+          <div class="filters" role="group" aria-label="Filter by type">
+            {filters.map((f) => (
+              <button class="filter" type="button" id={`filter-${f.id}`} data-filter={f.id} aria-pressed={f.id === 'all' ? 'true' : 'false'}>{f.label}</button>
+            ))}
+          </div>
+        )}
+      </div>
+      {topics.length > 1 && (
+        <div class="topics" role="group" aria-label="Topics">
+          <span class="topics-label">Topics</span>
+          {topics.map((t) => (
+            <button class="topic" type="button" id={`topic-${t.toLowerCase().replace(/\s+/g, '-')}`} data-topic={t.toLowerCase()} aria-pressed="false">{t}</button>
           ))}
         </div>
-      </div>
-      <div class="topics" role="group" aria-label="Topics">
-        <span class="topics-label">Topics</span>
-        {topics.map((t) => (
-          <button class="topic" type="button" id={`topic-${t.toLowerCase().replace(/\s+/g, '-')}`} data-topic={t.toLowerCase()} aria-pressed="false">{t}</button>
-        ))}
-      </div>
+      )}
     </div>
   </section>
 
   <section class="wrap list" aria-label="Posts">
-    <p class="count" data-count aria-live="polite">{planned} planned, {published} published</p>
+    <p class="count" data-count aria-live="polite">{entries(posts.length)}</p>
     <ul class="post-list" data-posts>
       {posts.map((post) => <PostRow post={post} level="h2" />)}
     </ul>
     <p class="empty" data-empty hidden>Nothing surfaced for that search. Try another term, or clear the filters.</p>
   </section>
+
+  {upcoming.length > 0 && (
+    <section class="wrap upcoming" aria-labelledby="upcoming-title">
+      <h2 id="upcoming-title" class="upcoming-title">Coming next</h2>
+      <ul class="upcoming-list">
+        {upcoming.map((p) => (
+          <li>
+            <span class="upcoming-name">{p.data.title}</span>
+            <span class="state">{typeLabel[p.data.type]}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
 </Base>
 
 <style>
@@ -147,7 +169,8 @@ const topics = ['Sentinel', 'KQL', 'Defender XDR', 'Purple team', 'Threat intel'
     .filters { flex-wrap: nowrap; width: 100%; overflow-x: auto; gap: 0.4rem; scrollbar-width: none; }
     .filter { flex: 1 0 auto; padding: 0 0.7rem; letter-spacing: 0.1em; }
   }
-  .list { padding-block: 1rem 6rem; max-width: calc(52rem + var(--gutter) + var(--gutter-r)); margin-left: max(0px, calc((100% - 74rem - var(--gutter) - var(--gutter-r)) / 2)); }
+  .list, .upcoming { max-width: calc(52rem + var(--gutter) + var(--gutter-r)); margin-left: max(0px, calc((100% - 74rem - var(--gutter) - var(--gutter-r)) / 2)); }
+  .list { padding-block: 1rem 3.5rem; }
   .count {
     padding-bottom: 0.9rem;
     font-size: 0.85rem;
@@ -155,4 +178,24 @@ const topics = ['Sentinel', 'KQL', 'Defender XDR', 'Purple team', 'Threat intel'
     font-variant-numeric: tabular-nums;
   }
   .empty { padding-block: 2.5rem; color: var(--text-soft); }
+
+  .upcoming { padding-bottom: 6rem; }
+  .upcoming-title {
+    padding-bottom: 0.9rem;
+    font: 600 0.72rem / 1 var(--font-body);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .upcoming-list { list-style: none; margin: 0; padding: 0; display: grid; }
+  .upcoming-list li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.45rem 1.5rem;
+    padding-block: 1.05rem;
+    border-top: 1px dashed var(--ghost);
+  }
+  .upcoming-name { font-family: var(--font-display); font-size: 1.12rem; line-height: 1.35; color: var(--text-soft); }
 </style>

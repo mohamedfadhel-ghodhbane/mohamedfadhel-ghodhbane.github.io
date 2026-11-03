@@ -1,27 +1,60 @@
-// Copy-to-clipboard and the writing page finder.
+// Copy-to-clipboard, code block copy buttons, and the writing page finder.
 (function () {
+  // copies the text; where the clipboard is blocked, selects the target so the visitor can copy it by hand
+  function copyText(text, label, target) {
+    var reset = function () { setTimeout(function () { label.textContent = 'Copy'; }, 1800); };
+    var fallback = function () {
+      if (target) {
+        var range = document.createRange();
+        range.selectNodeContents(target);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+      label.textContent = 'Selected';
+      reset();
+    };
+    try {
+      navigator.clipboard.writeText(text).then(function () { label.textContent = 'Copied'; reset(); }, fallback);
+    } catch (e) {
+      fallback();
+    }
+  }
+
   document.querySelectorAll('[data-copy]').forEach(function (btn) {
     var label = btn.querySelector('[data-copy-label]') || btn;
     btn.addEventListener('click', function () {
-      var text = btn.dataset.copy;
-      var reset = function () { setTimeout(function () { label.textContent = 'Copy'; }, 1800); };
-      var fallback = function () {
-        var target = document.getElementById(btn.dataset.copyTarget || '');
-        if (target) {
-          var range = document.createRange();
-          range.selectNodeContents(target);
-          var sel = window.getSelection();
-          sel.removeAllRanges();
-          sel.addRange(range);
-        }
-        label.textContent = 'Selected';
-        reset();
-      };
-      try {
-        navigator.clipboard.writeText(text).then(function () { label.textContent = 'Copied'; reset(); }, fallback);
-      } catch (e) {
-        fallback();
-      }
+      copyText(btn.dataset.copy, label, document.getElementById(btn.dataset.copyTarget || ''));
+    });
+  });
+
+  // each code block in an article gets a bar with its language and a copy button
+  var LANGS = { kql: 'KQL', html: 'HTML', json: 'JSON', yaml: 'YAML', bash: 'Bash', powershell: 'PowerShell', python: 'Python' };
+  document.querySelectorAll('.prose pre').forEach(function (pre) {
+    var code = pre.querySelector('code') || pre;
+    var key = (pre.dataset.language || '').toLowerCase();
+    var block = document.createElement('div');
+    var bar = document.createElement('div');
+    var lang = document.createElement('span');
+    var btn = document.createElement('button');
+    var label = document.createElement('span');
+    var hint = document.createElement('span');
+    block.className = 'code-block';
+    bar.className = 'code-bar';
+    lang.className = 'code-lang';
+    lang.textContent = LANGS[key] || (key && key !== 'plaintext' && key !== 'text' ? key.toUpperCase() : 'Code');
+    btn.type = 'button';
+    btn.className = 'code-copy';
+    label.textContent = 'Copy';
+    label.setAttribute('aria-live', 'polite');
+    hint.className = 'sr-only';
+    hint.textContent = ' ' + lang.textContent + ' code';
+    btn.append(label, hint);
+    bar.append(lang, btn);
+    pre.parentNode.insertBefore(block, pre);
+    block.append(bar, pre);
+    btn.addEventListener('click', function () {
+      copyText(code.textContent.replace(/\n+$/, ''), label, code);
     });
   });
 
@@ -70,10 +103,9 @@
       if (visible) shown++;
     });
     var filtered = q || type !== 'all';
-    var published = rows.filter(function (row) { return !row.hidden && row.querySelector('.state.is-radiant'); }).length;
     count.textContent = filtered
-      ? (shown === 1 ? '1 entry matches' : shown + ' entries match') + ' (' + published + ' published)'
-      : (shown - published) + ' planned, ' + published + ' published';
+      ? (shown === 1 ? '1 entry matches' : shown + ' entries match')
+      : (shown === 1 ? '1 entry' : shown + ' entries');
     empty.hidden = shown !== 0;
     topics.forEach(function (btn) { btn.setAttribute('aria-pressed', String(q !== '' && btn.dataset.topic === q)); });
   }

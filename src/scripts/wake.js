@@ -4,6 +4,9 @@
   if (!canvases.length) return;
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var BG = '3, 6, 11';
+  // phones draw at 30 fps with fewer plankton; decay rates scale with elapsed time so the motion looks the same
+  var NARROW_FRAME = 1000 / 30;
+  var NARROW_THIN = 1.35;
 
   // core: tight bright ribbon on the current; loose: dimmer drift around it; ambient: faint specks anywhere
   var CONFIG = {
@@ -88,9 +91,10 @@
     var ignite = cfg.ignite && !reduceMotion ? 0 : 1;
     var pointer = { x: -9999, y: -9999, vx: 0, vy: 0, speed: 0, inside: false, lastT: 0 };
     var narrow = false;
+    var offX = 0, offY = 0;
 
     function seed() {
-      var n = Math.min(cfg.max, Math.round((w * h) / cfg.density));
+      var n = Math.min(cfg.max, Math.round((w * h) / (cfg.density * (narrow ? NARROW_THIN : 1))));
       var scale = Math.min(w, h * 1.4);
       parts = [];
       for (var i = 0; i < n; i++) {
@@ -116,26 +120,37 @@
       }
     }
 
-    function resize() {
+    // the canvas position on the page, cached so pointer moves never have to measure layout
+    function measure() {
       var rect = canvas.getBoundingClientRect();
+      offX = rect.left + window.scrollX;
+      offY = rect.top + window.scrollY;
+      return rect;
+    }
+
+    function resize() {
+      var rect = measure();
       w = Math.max(1, rect.width);
       h = Math.max(1, rect.height);
-      var dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+      narrow = w < 760;
+      var dpr = Math.min(window.devicePixelRatio || 1, narrow ? 1.5 : 1.75);
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       spine = sampleSpine(spinePoints(kind, w), w, h);
-      narrow = w < 760;
       seed();
       ctx.fillStyle = 'rgb(' + BG + ')';
       ctx.fillRect(0, 0, w, h);
     }
 
-    function step(dt) {
+    // ticks: elapsed time in 60 fps frames, so the per-frame decay rates hold at any frame rate
+    function step(dt, ticks) {
+      if (ticks === undefined) ticks = 1;
       t += dt;
       if (ignite < 1) ignite = Math.min(1, ignite + dt / 1.6);
       var level = 0.38 + 0.62 * (1 - Math.pow(2, -10 * ignite));
-      pointer.speed *= 0.9;
+      pointer.speed *= Math.pow(0.9, ticks);
+      var keepE = Math.pow(0.958, ticks), keepD = Math.pow(0.968, ticks), keepV = Math.pow(0.95, ticks);
       var R = Math.max(90, Math.min(w, h) * 0.16);
       var R2 = R * R;
       var N = spine.pts.length - 1;
@@ -166,14 +181,14 @@
           var dist2 = ddx * ddx + ddy * ddy;
           if (dist2 < R2) {
             var f = 1 - Math.sqrt(dist2) / R;
-            p.e = Math.min(1.5, p.e + f * (0.05 + pointer.speed * 0.006));
-            p.dx += pointer.vx * f * 0.018;
-            p.dy += pointer.vy * f * 0.018;
+            p.e = Math.min(1.5, p.e + f * (0.05 + pointer.speed * 0.006) * ticks);
+            p.dx += pointer.vx * f * 0.018 * ticks;
+            p.dy += pointer.vy * f * 0.018 * ticks;
           }
         }
-        p.e *= 0.958;
-        p.dx *= 0.968;
-        p.dy *= 0.968;
+        p.e *= keepE;
+        p.dx *= keepD;
+        p.dy *= keepD;
         p.ox = p.rx === undefined ? x + p.dx : p.rx;
         p.oy = p.ry === undefined ? y + p.dy : p.ry;
         p.rx = x + p.dx;
@@ -186,8 +201,8 @@
         var q = trail[j];
         q.x += q.vx * dt;
         q.y += q.vy * dt;
-        q.vx *= 0.95;
-        q.vy *= 0.95;
+        q.vx *= keepV;
+        q.vy *= keepV;
         q.life -= dt / 1.4;
         if (q.life <= 0) trail.splice(j, 1);
       }
@@ -253,9 +268,14 @@
     function frame(now) {
       raf = 0;
       if (!visible || document.hidden) return;
-      var dt = Math.min(0.05, (now - (last || now)) / 1000) * (narrow ? 1.5 : 1);
+      // 4 ms of slack so a 60 Hz screen draws every second frame instead of drifting to every third
+      if (narrow && last && now - last < NARROW_FRAME - 4) {
+        raf = requestAnimationFrame(frame);
+        return;
+      }
+      var elapsed = Math.min(50, now - (last || now));
       last = now;
-      step(dt);
+      step((elapsed / 1000) * (narrow ? 1.5 : 1), elapsed / (1000 / 60));
       draw();
       raf = requestAnimationFrame(frame);
     }
@@ -276,10 +296,11 @@
       cfg.fade = keep;
     }
 
-    function onMove(clientX, clientY) {
-      var rect = canvas.getBoundingClientRect();
-      var x = clientX - rect.left, y = clientY - rect.top;
-      var inside = x >= 0 && y >= 0 && x <= rect.width && y <= rect.height;
+    // page coordinates against the cached offset: no layout read on the hot path
+    function onMove(pageX, pageY) {
+      if (!visible) { pointer.inside = false; return; }
+      var x = pageX - offX, y = pageY - offY;
+      var inside = x >= 0 && y >= 0 && x <= w && y <= h;
       var now = performance.now();
       if (pointer.inside && inside) {
         var dtm = Math.max(8, now - pointer.lastT);
@@ -306,9 +327,9 @@
     if (reduceMotion) renderStill();
 
     if (cfg.interactive && !reduceMotion) {
-      window.addEventListener('pointermove', function (e) { onMove(e.clientX, e.clientY); }, { passive: true });
+      window.addEventListener('pointermove', function (e) { onMove(e.pageX, e.pageY); }, { passive: true });
       window.addEventListener('touchmove', function (e) {
-        if (e.touches[0]) onMove(e.touches[0].clientX, e.touches[0].clientY);
+        if (e.touches[0]) onMove(e.touches[0].pageX, e.touches[0].pageY);
       }, { passive: true });
       canvas.parentElement.addEventListener('pointerleave', function () { pointer.inside = false; });
     }
@@ -321,6 +342,8 @@
         if (reduceMotion) renderStill();
       }, 120);
     }).observe(canvas.parentElement);
+    // content above the canvas can grow (fonts, images) without the canvas resizing, which shifts its offset
+    new ResizeObserver(function () { measure(); }).observe(document.body);
 
     new IntersectionObserver(function (entries) {
       visible = entries[0].isIntersecting;

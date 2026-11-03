@@ -1,0 +1,35 @@
+---
+import Base from '../layouts/Base.astro';
+import WakeArrow from '../components/WakeArrow.astro';
+import { BASE as base, NAME } from '../lib/site';
+---
+<Base title={`Page not found · ${NAME}`} description="This page doesn't exist or has moved." noindex>
+  <section class="lost" aria-labelledby="lost-title">
+    <canvas class="wake" data-wake="close" aria-hidden="true"></canvas>
+    <div class="wrap lost-inner">
+      <p class="lost-code">Error 404</p>
+      <h1 id="lost-title" class="display-2">The trace goes cold here.</h1>
+      <p class="lede">The page you followed doesn't exist, or it has moved. Everything else is still where you left it.</p>
+      <div class="lost-actions">
+        <a class="btn btn-primary" href={base}>Back to home <WakeArrow /></a>
+        <a class="btn" href={`${base}writing/`}>Read the writing <WakeArrow /></a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .lost {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    min-height: calc(100svh - 4.25rem);
+    padding-block: clamp(5rem, 14vh, 8rem) clamp(9rem, 24vh, 13rem);
+  }
+  .lost .wake { z-index: -1; }
+  .lost-inner { display: grid; gap: 1.6rem; justify-items: start; }
+  .lost-inner .display-2 { max-width: 14ch; }
+  .lost-inner .lede { max-width: 40ch; }
+  .lost-code { font: 600 0.72rem / 1 var(--font-body); letter-spacing: 0.22em; text-transform: uppercase; color: var(--cyan); }
+  .lost-actions { display: flex; flex-wrap: wrap; gap: 0.9rem; padding-top: 0.4rem; }
+</style>
