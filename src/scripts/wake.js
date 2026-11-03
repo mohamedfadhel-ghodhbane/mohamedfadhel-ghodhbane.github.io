@@ -281,7 +281,7 @@
     }
 
     function start() {
-      if (reduceMotion || raf) return;
+      if (reduceMotion || raf || !spine) return;
       last = 0;
       raf = requestAnimationFrame(frame);
     }
@@ -323,9 +323,6 @@
       pointer.lastT = now;
     }
 
-    resize();
-    if (reduceMotion) renderStill();
-
     if (cfg.interactive && !reduceMotion) {
       window.addEventListener('pointermove', function (e) { onMove(e.pageX, e.pageY); }, { passive: true });
       window.addEventListener('touchmove', function (e) {
@@ -336,6 +333,12 @@
 
     var resizeTimer = 0;
     new ResizeObserver(function () {
+      // the first callback arrives right after layout, so sizing the canvas here never forces one
+      if (!spine) {
+        resize();
+        if (reduceMotion) renderStill(); else if (visible) start();
+        return;
+      }
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(function () {
         resize();
