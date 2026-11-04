@@ -38,7 +38,7 @@ const schema = {
 ---
 <Base title={`${d.title} · ${NAME}`} description={d.summary} current="writing" type="article" published={d.date} tags={d.tags} schema={schema}>
   <article class="wrap article">
-    <a class="link-wake back" href={`${base}writing/`}>All writing <WakeArrow /></a>
+    <a class="link-wake back" href={`${base}writing/`}>All articles <WakeArrow /></a>
     <header class="article-head">
       <p class="article-meta">{typeLabel}{dateLabel && <> · <time datetime={d.date?.toISOString()}>{dateLabel}</time></>} · {minutes} min read</p>
       <h1 class="display-2">{d.title}</h1>

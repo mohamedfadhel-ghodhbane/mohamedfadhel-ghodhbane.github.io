@@ -47,14 +47,14 @@ const schema = {
 ---
 <Base title={`${NAME} · ${JOB_TITLE}`} description={description} schema={schema}>
   <section class="hero" aria-labelledby="hero-title">
-    <canvas class="wake" data-wake="hero" aria-hidden="true"></canvas>
+    <canvas class="trace" data-trace aria-hidden="true"></canvas>
     <div class="wrap hero-inner">
       <div class="hero-copy">
         <h1 id="hero-title" class="display"><span>Every move</span> <span>leaves a trace.</span></h1>
         <p class="lede">I'm Mohamed Fadhel Ghodhbane, a cybersecurity engineer. I build detections and run security operations on Microsoft Sentinel and Defender XDR, and I write up what I learn along the way.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href={`mailto:${email}`}>Email me <WakeArrow /></a>
-          <a class="btn" href={`${base}writing/`}>Read the writing <WakeArrow /></a>
+          <a class="btn" href={`${base}writing/`}>Read my articles <WakeArrow /></a>
         </div>
       </div>
     </div>
@@ -101,9 +101,9 @@ const schema = {
   <section class="band" id="writing" aria-labelledby="writing-title">
     <div class="wrap split">
       <div class="split-head">
-        <h2 id="writing-title">Writing</h2>
-        <p>Articles, writeups, and notes from detection and response work.</p>
-        <a class="link-wake" href={`${base}writing/`}>All writing <WakeArrow /></a>
+        <h2 id="writing-title">Articles</h2>
+        <p>Guides, writeups, and notes from detection and response work.</p>
+        <a class="link-wake" href={`${base}writing/`}>All articles <WakeArrow /></a>
       </div>
       <ul class="post-list">
         {posts.map((post) => <PostRow post={post} />)}
@@ -149,16 +149,7 @@ const schema = {
     overflow: hidden;
     padding-block: clamp(5rem, 13vh, 8.5rem) clamp(5rem, 13vh, 8.5rem);
   }
-  .hero .wake { z-index: -1; }
-  .hero::after {
-    content: "";
-    position: absolute;
-    inset: auto 0 0;
-    height: 6rem;
-    z-index: -1;
-    background: linear-gradient(to bottom, rgba(246, 243, 236, 0), var(--paper));
-    pointer-events: none;
-  }
+  .hero .trace { z-index: -1; }
   .hero-copy { display: grid; gap: 1.8rem; justify-items: start; max-width: 46rem; }
   .display span { display: block; }
   .hero-actions { display: flex; flex-wrap: wrap; gap: 0.9rem; padding-top: 0.3rem; }
@@ -209,4 +200,7 @@ const schema = {
   }
   .email-big:hover { color: var(--accent); }
   .socials { display: flex; flex-wrap: wrap; gap: 1rem 2.25rem; }
+  @media (max-width: 899px) {
+    .hero { padding-bottom: 12.5rem; }
+  }
 </style>

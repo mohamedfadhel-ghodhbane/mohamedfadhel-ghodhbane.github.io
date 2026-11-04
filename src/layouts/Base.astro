@@ -2,7 +2,7 @@
 import '@fontsource-variable/newsreader/wght.css';
 import '@fontsource-variable/albert-sans/wght.css';
 import '../styles/global.css';
-import wakeSrc from '../scripts/wake.js?raw';
+import traceSrc from '../scripts/trace.js?raw';
 import siteSrc from '../scripts/site.js?raw';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -49,7 +49,7 @@ const jsonLd = schema && JSON.stringify(schema).replace(/</g, '\\u003c');
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image:alt" content={OG_IMAGE_ALT} />
     <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-    <link rel="alternate" type="application/rss+xml" title={`${NAME}: writing`} href={`${base}rss.xml`} />
+    <link rel="alternate" type="application/rss+xml" title={`${NAME}: articles`} href={`${base}rss.xml`} />
     {jsonLd && <script is:inline type="application/ld+json" set:html={jsonLd}></script>}
   </head>
   <body>
@@ -59,7 +59,7 @@ const jsonLd = schema && JSON.stringify(schema).replace(/</g, '\\u003c');
       <slot />
     </main>
     <Footer />
-    <script is:inline set:html={wakeSrc}></script>
+    <script is:inline set:html={traceSrc}></script>
     <script is:inline set:html={siteSrc}></script>
   </body>
 </html>

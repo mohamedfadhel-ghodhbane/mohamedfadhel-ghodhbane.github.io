@@ -15,7 +15,7 @@ const hasProjects = (await getCollection('projects', (p) => p.data.status === 'p
     </a>
     <nav class="nav" aria-label="Main">
       <a href={`${base}#work`}>Work</a>
-      <a href={`${base}writing/`} aria-current={current === 'writing' ? 'page' : undefined}>Writing</a>
+      <a href={`${base}writing/`} aria-current={current === 'writing' ? 'page' : undefined}>Articles</a>
       {hasProjects && <a class="nav-optional" href={`${base}#projects`}>Projects</a>}
       <a href={`${base}#contact`}>Contact</a>
     </nav>

@@ -1,6 +1,6 @@
 # Mohamed Fadhel Ghodhbane: personal site
 
-Astro 5 static site: the home page (about, services, projects, recent writing, contact), the writing index (articles, writeups, notes with search and filters), one page per published post, an RSS feed at `/rss.xml`, and a custom 404 page.
+Astro 5 static site: the home page (about, services, projects, recent writing, contact), the articles index (articles, writeups, notes with search and filters, at `/writing/`), one page per published post, an RSS feed at `/rss.xml`, and a custom 404 page.
 
 Shared identity and links (name, email, LinkedIn, GitHub, social image) live in `src/lib/site.ts`.
 
@@ -46,4 +46,4 @@ Every page carries a canonical link, Open Graph and Twitter tags, and the shared
 
 ## Design
 
-The look is "Paper": a warm off-white background, ink text, hairline rules and one rust accent, with Newsreader serif headings and Albert Sans body text. The palette, type and controls live in `src/styles/global.css`, and article code blocks use Shiki's `github-light` theme (`astro.config.mjs`). The home page hero has a quiet animation, `src/scripts/wake.js`: rust specks drift along a current and darken under the visitor's cursor or finger. It renders one still frame when the visitor prefers reduced motion, and draws at 30 fps with fewer specks on narrow screens.
+The look is "Paper": a warm off-white background, ink text, hairline rules and one emerald accent, with Newsreader serif headings and Albert Sans body text. The palette, type and controls live in `src/styles/global.css`, and article code blocks use Shiki's `github-light-default` theme (`astro.config.mjs`). The home page hero has a strip-chart recorder, `src/scripts/trace.js`: an ink pen plots the visitor's movement as the paper scrolls, and peaks that cross the dashed threshold are ringed and marked "detected". It takes its colours from the CSS tokens, pauses off screen, draws at 30 fps on narrow screens, and shows a single still frame when the visitor prefers reduced motion.

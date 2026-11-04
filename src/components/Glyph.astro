@@ -3,13 +3,13 @@ interface Props { class?: string }
 const { class: className } = Astro.props;
 ---
 <svg class={className} viewBox="0 0 32 32" aria-hidden="true">
-  <g fill="#b4532a">
+  <g style="fill: var(--accent, #086b50)">
     <circle cx="16" cy="6.5" r="2.1" />
     <circle cx="11" cy="12.5" r="1.6" />
     <circle cx="21" cy="12.5" r="1.6" />
     <circle cx="16" cy="16.5" r="2.5" />
   </g>
-  <g fill="#6c675e">
+  <g style="fill: var(--mark-2, #6c675e)">
     <circle cx="8.5" cy="20.5" r="1.4" />
     <circle cx="23.5" cy="20.5" r="1.4" />
     <circle cx="12.5" cy="25" r="1.2" />

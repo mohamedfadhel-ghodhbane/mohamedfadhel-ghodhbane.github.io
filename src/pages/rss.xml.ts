@@ -9,7 +9,7 @@ export async function GET(context: APIContext) {
     .sort((a, b) => (b.data.date?.getTime() ?? 0) - (a.data.date?.getTime() ?? 0) || a.data.order - b.data.order);
 
   return rss({
-    title: `${NAME}: writing`,
+    title: `${NAME}: articles`,
     description: 'Articles on detection engineering and Microsoft security, incident writeups, and short notes.',
     site: context.site!,
     items: posts.map((post) => ({
