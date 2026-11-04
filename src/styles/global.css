@@ -183,7 +183,10 @@ p { margin: 0; }
   padding: 0.1rem 0.6rem;
   border: 1px solid var(--rule);
   border-radius: 999px;
+  text-decoration: none;
+  transition: border-color 0.2s var(--ease-out), color 0.2s var(--ease-out);
 }
+a.tag:hover { border-color: var(--accent); color: var(--accent); }
 
 /* the strip-chart canvas in the home page hero */
 .trace { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }

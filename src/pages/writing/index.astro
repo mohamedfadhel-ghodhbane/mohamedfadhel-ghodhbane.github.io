@@ -9,13 +9,13 @@ const posts = all
   .sort((a, b) => (b.data.date?.getTime() ?? 0) - (a.data.date?.getTime() ?? 0) || a.data.order - b.data.order);
 // a short look ahead instead of every planned topic
 const upcoming = all.filter((p) => p.data.status === 'planned').sort((a, b) => a.data.order - b.data.order).slice(0, 3);
-const typeLabel = { article: 'Article', writeup: 'Writeup', note: 'Note' };
+const typeLabel = { article: 'Guide', writeup: 'Writeup', note: 'Note' };
 
 // filters and topics only appear when they would match something
 const types = new Set(posts.map((p) => p.data.type));
 const filters = [
   { id: 'all', label: 'All' },
-  { id: 'article', label: 'Articles' },
+  { id: 'article', label: 'Guides' },
   { id: 'writeup', label: 'Writeups' },
   { id: 'note', label: 'Notes' },
 ].filter((f) => f.id === 'all' || types.has(f.id as 'article' | 'writeup' | 'note'));

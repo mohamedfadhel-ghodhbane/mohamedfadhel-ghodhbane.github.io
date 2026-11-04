@@ -22,7 +22,19 @@ const services = [
   { name: 'Cloud and network hardening', text: 'Azure hardening against CIS and Microsoft benchmarks, firewalls and F5 WAF, and ISO/IEC 27001 audits.' },
 ];
 
-const tools = ['Microsoft Sentinel', 'Defender XDR', 'KQL', 'MITRE ATT&CK', 'Azure', 'Tenable Nessus', 'Fortinet', 'F5 LTM & ASM', 'LogRhythm', 'Splunk'];
+// core tools lead the list and carry the accent
+const tools = [
+  { name: 'Microsoft Sentinel', kind: 'SIEM', core: true },
+  { name: 'Defender XDR', kind: 'XDR', core: true },
+  { name: 'KQL', kind: 'Query language', core: true },
+  { name: 'MITRE ATT&CK', kind: 'Framework' },
+  { name: 'Azure', kind: 'Cloud' },
+  { name: 'Tenable Nessus', kind: 'Vulnerability scanning' },
+  { name: 'Fortinet', kind: 'Firewalls' },
+  { name: 'F5 LTM & ASM', kind: 'Load balancing and WAF' },
+  { name: 'LogRhythm', kind: 'SIEM' },
+  { name: 'Splunk', kind: 'SIEM' },
+];
 const description = 'Cybersecurity engineer building detections and running security operations on Microsoft Sentinel and Defender XDR.';
 
 // tells search engines who the site belongs to and which profiles are the same person
@@ -57,6 +69,20 @@ const schema = {
           <a class="btn" href={`${base}writing/`}>Read my articles <WakeArrow /></a>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="toolbox" aria-labelledby="tools-title">
+    <div class="wrap toolbox-inner">
+      <h2 id="tools-title">Tools I use most</h2>
+      <ul class="toolbox-list">
+        {tools.map((t) => (
+          <li class:list={{ core: t.core }}>
+            <span class="tool-name">{t.name}</span>
+            <span class="tool-kind">{t.kind}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   </section>
 
@@ -112,17 +138,9 @@ const schema = {
   </section>
 
   <section class="band band-quiet" id="background" aria-labelledby="background-title">
-    <div class="wrap split">
-      <div class="split-head">
-        <h2 id="background-title">Background</h2>
-      </div>
-      <div class="background">
-        <p>I'm a telecommunications engineer with a Master's-level degree from Sup'Com. Before focusing on detection and response, I ran firewalls, WAF and SIEM for a telecom operator, led ISO/IEC 27001 audits, and built servers and networks for a consulting firm.</p>
-        <p class="tools-lead">Tools I use most:</p>
-        <ul class="tools">
-          {tools.map((tool) => <li class="tag">{tool}</li>)}
-        </ul>
-      </div>
+    <div class="wrap background">
+      <h2 id="background-title">Background</h2>
+      <p>I'm a telecommunications engineer with a Master's-level degree from Sup'Com. Before focusing on detection and response, I ran firewalls, WAF and SIEM for a telecom operator, led ISO/IEC 27001 audits, and built servers and networks for a consulting firm.</p>
     </div>
   </section>
 
@@ -174,10 +192,18 @@ const schema = {
   .project .state { grid-column: 2; grid-row: 1; align-self: center; }
   .project p { grid-column: 1 / -1; color: var(--text-soft); max-width: 58ch; }
 
-  .background { display: grid; gap: 1.1rem; }
-  .background > p:first-child { font-size: 1.15rem; line-height: 1.6; max-width: 58ch; }
-  .tools-lead { padding-top: 0.6rem; color: var(--text-soft); }
-  .tools { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  /* the tools band: the stack, set large enough to read at a glance */
+  .toolbox { padding-block: 3.75rem 4.25rem; border-top: 1px solid var(--rule-soft); background: #ffffff; }
+  .toolbox-inner { display: grid; gap: 2rem; }
+  .toolbox-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 1.6rem 3rem; }
+  .toolbox-list li { display: grid; gap: 0.35rem; }
+  .tool-name { font: 500 clamp(1.45rem, 2.4vw, 2rem) / 1.1 var(--font-display); letter-spacing: -0.01em; color: var(--text); }
+  .toolbox-list .core .tool-name { color: var(--accent); }
+  .tool-kind { font-size: 0.85rem; color: var(--text-dim); }
+
+  /* background: one short statement in a single column, a change of pace after the two-column sections */
+  .background { display: grid; gap: 1rem; max-width: calc(46rem + var(--gutter) + var(--gutter-r)); margin-inline: auto; }
+  .background p { font: 400 clamp(1.25rem, 2vw, 1.5rem) / 1.5 var(--font-display); color: var(--text); text-wrap: pretty; }
 
   .close {
     padding-block: clamp(5rem, 12vh, 7.5rem);

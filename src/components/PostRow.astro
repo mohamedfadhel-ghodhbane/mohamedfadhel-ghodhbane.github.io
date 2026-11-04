@@ -7,7 +7,7 @@ const Heading = level;
 const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 const d = post.data;
 const published = d.status === 'published';
-const typeLabel = { article: 'Article', writeup: 'Writeup', note: 'Note' }[d.type];
+const typeLabel = { article: 'Guide', writeup: 'Writeup', note: 'Note' }[d.type];
 const dateLabel = d.date ? d.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
 const minutes = readingMinutes(post.body);
 ---
@@ -24,6 +24,6 @@ const minutes = readingMinutes(post.body);
       ? <span class="state is-radiant">{dateLabel || 'Published'}</span>
       : <span class="state">Planned</span>}
     {published && <span class="post-time">{minutes} min read</span>}
-    {d.tags.map((tag) => <span class="tag" data-hl>{tag}</span>)}
+    {d.tags.map((tag) => <a class="tag" href={`${base}writing/?topic=${encodeURIComponent(tag.toLowerCase())}`} data-hl>{tag}</a>)}
   </div>
 </li>

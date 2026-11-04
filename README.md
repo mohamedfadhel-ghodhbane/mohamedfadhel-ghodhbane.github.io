@@ -30,7 +30,7 @@ date: 2026-11-15
 Write the post here in Markdown. Code blocks such as ```kql are highlighted.
 ```
 
-A post with `status: published` gets its own page at `/writing/<file-name>/`, a date and reading time in the list, a link from the home page, and an entry in the RSS feed. Planned posts (`status: planned`) never get a page; the writing index lists the three with the lowest `order` under "Coming next". Code blocks get a language label and a copy button.
+A post with `status: published` gets its own page at `/writing/<file-name>/`, a date and reading time in the list, a link from the home page, and an entry in the RSS feed. Planned posts (`status: planned`) never get a page; the writing index lists the three with the lowest `order` under "Coming next". Code blocks get a language label and a copy button. Posts with three or more sections get a table of contents, and every post ends with a short author note and links to the previous and next post. Tags link to the articles page filtered by that topic (`/writing/?topic=kql`). The `article` type is labelled "Guide" on the site.
 
 ## Add a project
 
@@ -42,7 +42,7 @@ The site deploys to GitHub Pages through `.github/workflows/deploy.yml` on every
 
 ## Search and sharing
 
-Every page carries a canonical link, Open Graph and Twitter tags, and the shared preview image `public/og-default.jpg` (1200 x 630). The home page describes the site owner with schema.org `Person` data, and each article with `BlogPosting` data.
+Every page carries a canonical link and Open Graph and Twitter tags. Each published post gets its own 1200 x 630 title card in `public/og/<post>.jpg`, made by `python tools/og-images.py` (run it after adding or retitling a post; it needs Pillow and Chrome). Pages without a card use `public/og-default.jpg`. The home page describes the site owner with schema.org `Person` data, and each article with `BlogPosting` data.
 
 ## Design
 

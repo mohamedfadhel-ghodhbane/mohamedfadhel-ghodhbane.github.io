@@ -1,4 +1,4 @@
-// Copy-to-clipboard, code block copy buttons, and the writing page finder.
+// Copy-to-clipboard, code block copy buttons, article reading aids, and the articles page finder.
 (function () {
   // copies the text; where the clipboard is blocked, selects the target so the visitor can copy it by hand
   function copyText(text, label, target) {
@@ -42,13 +42,15 @@
     block.className = 'code-block';
     bar.className = 'code-bar';
     lang.className = 'code-lang';
-    lang.textContent = LANGS[key] || (key && key !== 'plaintext' && key !== 'text' ? key.toUpperCase() : 'Code');
+    // plain text blocks (diagrams, output) get no language label
+    lang.textContent = LANGS[key] || (key && key !== 'plaintext' && key !== 'text' ? key.toUpperCase() : '');
+    lang.hidden = !lang.textContent;
     btn.type = 'button';
     btn.className = 'code-copy';
     label.textContent = 'Copy';
     label.setAttribute('aria-live', 'polite');
     hint.className = 'sr-only';
-    hint.textContent = ' ' + lang.textContent + ' code';
+    hint.textContent = lang.textContent ? ' ' + lang.textContent + ' code' : ' code';
     btn.append(label, hint);
     bar.append(lang, btn);
     pre.parentNode.insertBefore(block, pre);
@@ -57,6 +59,43 @@
       copyText(code.textContent.replace(/\n+$/, ''), label, code);
     });
   });
+
+  // article table of contents: mark the section currently being read
+  var tocLinks = Array.prototype.slice.call(document.querySelectorAll('[data-toc] a'));
+  if (tocLinks.length && 'IntersectionObserver' in window) {
+    var sections = tocLinks.map(function (a) { return document.getElementById(decodeURIComponent(a.hash.slice(1))); });
+    var setCurrent = function (id) {
+      tocLinks.forEach(function (a) { a.setAttribute('aria-current', String(a.hash.slice(1) === id)); });
+    };
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { e.target.dataset.seen = e.isIntersecting || e.boundingClientRect.top < 0 ? '1' : ''; });
+      var current = null;
+      sections.forEach(function (s) { if (s && s.dataset.seen) current = s; });
+      setCurrent(current ? current.id : '');
+    }, { rootMargin: '-80px 0px -65% 0px' });
+    sections.forEach(function (s) { if (s) observer.observe(s); });
+  }
+
+  // reading progress along the top edge of article pages
+  var bar = document.querySelector('[data-progress]');
+  var prose = document.querySelector('[data-prose]');
+  if (bar && prose) {
+    var start = 0, end = 1, ticking = false;
+    var measure = function () {
+      var r = prose.getBoundingClientRect();
+      start = r.top + window.scrollY - window.innerHeight * 0.2;
+      end = r.bottom + window.scrollY - window.innerHeight * 0.8;
+    };
+    var paint = function () {
+      ticking = false;
+      var p = Math.max(0, Math.min(1, (window.scrollY - start) / Math.max(1, end - start)));
+      bar.style.transform = 'scaleX(' + p + ')';
+    };
+    new ResizeObserver(function () { measure(); paint(); }).observe(document.body);
+    window.addEventListener('scroll', function () {
+      if (!ticking) { ticking = true; requestAnimationFrame(paint); }
+    }, { passive: true });
+  }
 
   var list = document.querySelector('[data-posts]');
   if (!list) return;
@@ -124,4 +163,8 @@
       apply();
     });
   });
+
+  // tags elsewhere on the site link here as ?topic=kql
+  var initial = new URLSearchParams(location.search).get('topic');
+  if (initial) { search.value = initial; apply(); }
 })();
