@@ -62,7 +62,7 @@ const schema = {
     <canvas class="trace" data-trace aria-hidden="true"></canvas>
     <div class="wrap hero-inner">
       <div class="hero-copy">
-        <h1 id="hero-title" class="display"><span>Every move</span> <span>leaves a trace.</span></h1>
+        <h1 id="hero-title" class="display"><span>Detection engineering</span> <span>for Microsoft security.</span></h1>
         <p class="lede">I'm Mohamed Fadhel Ghodhbane, a cybersecurity engineer. I build detections and run security operations on Microsoft Sentinel and Defender XDR, and I write up what I learn along the way.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href={`mailto:${email}`}>Email me <WakeArrow /></a>
@@ -136,7 +136,7 @@ const schema = {
 
   <section class="close" id="contact" aria-labelledby="contact-title">
     <div class="wrap close-inner">
-      <h2 id="contact-title" class="display-2">Seeing movement you can't explain?</h2>
+      <h2 id="contact-title" class="display-2">Need help with Sentinel or Defender XDR?</h2>
       <p class="lede">Email is the quickest way to reach me. I'm open to consulting work and full-time security roles.</p>
       <div class="email-row">
         <a class="email-big" id="email-address" href={`mailto:${email}`}>{email}</a>
@@ -159,6 +159,8 @@ const schema = {
   }
   .hero .trace { z-index: -1; }
   .hero-copy { display: grid; gap: 1.8rem; justify-items: start; max-width: 46rem; }
+  /* the headline is a description now, so it runs smaller than the global display size and keeps clear of the chart */
+  .hero .display { font-size: clamp(2.5rem, 4.9vw, 4.4rem); }
   .display span { display: block; }
   .hero-actions { display: flex; flex-wrap: wrap; gap: 0.9rem; padding-top: 0.3rem; }
 
@@ -196,7 +198,7 @@ const schema = {
     background: var(--panel);
   }
   .close-inner { display: grid; gap: 1.5rem; justify-items: start; }
-  .close-inner .display-2 { max-width: 16ch; }
+  .close-inner .display-2 { max-width: 20ch; }
   .close-inner .lede { max-width: 44ch; }
   .email-row { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.4rem; padding-top: 0.5rem; }
   .email-big {
@@ -213,5 +215,8 @@ const schema = {
   .socials { display: flex; flex-wrap: wrap; gap: 1rem 2.25rem; }
   @media (max-width: 899px) {
     .hero { padding-bottom: 12.5rem; }
+  }
+  @media (max-width: 480px) {
+    .hero .display { font-size: 2.1rem; }
   }
 </style>

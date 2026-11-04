@@ -74,7 +74,7 @@ html, body {{ margin: 0; width: 1200px; height: 630px; overflow: hidden; backgro
 .brand {{ display: flex; align-items: center; gap: 12px; font: 500 25px/1 "OG Serif"; color: #1f1d1a; }}
 .brand svg {{ width: 34px; height: 34px; }}
 .meta {{ font: 600 20px/1 "OG Sans"; color: #086b50; }}
-h1 {{ margin: 52px 0 0; max-width: 1000px; max-height: 300px; font: 400 64px/1.1 "OG Serif"; letter-spacing: -0.015em; color: #1f1d1a; }}
+h1 {{ margin: 52px 0 0; max-width: 1000px; max-height: 300px; font: 400 64px/1.1 "OG Serif"; letter-spacing: -0.015em; color: #1f1d1a; text-wrap: balance; }}
 .bottom {{ margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; }}
 .url {{ font: 600 19px/1 "OG Sans"; color: #4a4640; }}
 </style></head><body><div class="card">

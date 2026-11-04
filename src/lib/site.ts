@@ -9,7 +9,7 @@ export const BASE = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 export const HOME = new URL(BASE, import.meta.env.SITE).href;
 export const PERSON_ID = `${HOME}#person`;
 export const OG_IMAGE = new URL(`${BASE}og-default.jpg`, import.meta.env.SITE).href;
-export const OG_IMAGE_ALT = 'Mohamed Fadhel Ghodhbane, cybersecurity engineer: Every move leaves a trace.';
+export const OG_IMAGE_ALT = 'Mohamed Fadhel Ghodhbane, cybersecurity engineer: detection engineering for Microsoft security.';
 
 // words in the markdown source, minus image and link syntax; code counts, since readers read it too
 export function wordCount(body = ''): number {
