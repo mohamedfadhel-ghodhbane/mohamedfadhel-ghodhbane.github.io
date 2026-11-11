@@ -1,59 +1,42 @@
-// The trace: a paper strip-chart recorder in the home page hero. An ink pen plots the visitor's activity as the
-// paper scrolls; when a burst of movement crosses the dashed threshold, the peak is ringed and marked "detected".
+// The network map in the home page hero: packets cross a small network, the firewall stops most of them,
+// and when one gets in, the SOC traces it with a line and rings it "detected".
 (function () {
   var canvas = document.querySelector('canvas[data-trace]');
   if (!canvas) return;
+  var ctx = canvas.getContext('2d');
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   var css = getComputedStyle(document.documentElement);
   var INK = css.getPropertyValue('--text').trim() || '#1f1d1a';
+  var DIM = css.getPropertyValue('--text-dim').trim() || '#6c675e';
   var ACCENT = css.getPropertyValue('--accent').trim() || '#086b50';
-  var RULE = css.getPropertyValue('--rule').trim() || '#ddd5c6';
+  var PAPER = css.getPropertyValue('--paper').trim() || '#f6f3ec';
   var LABEL_FONT = '600 11px ' + (css.getPropertyValue('--font-body').trim() || 'sans-serif');
 
-  var RATE = 40;              // samples per second
-  var THRESHOLD = 0.55;       // a peak above this value counts as a detection
-  var NARROW_FRAME = 1000 / 30;
-  var LABEL_LIFE = 2200;      // ms the "detected" label stays visible
+  var NARROW_FRAME = 1000 / 30;  // phones draw at 30 fps
+  var PASS_RATE = 0.12;          // share of packets the firewall lets through
+  var MAX_QUIET = 7;             // seconds before one is let through anyway, so every visit sees a catch
+  var CATCH_LIFE = 4;            // seconds a caught packet stays on screen
 
-  var ctx = canvas.getContext('2d');
-  var w = 1, h = 1, narrow = false, speed = 60;
-  var R = { x0: 0, x1: 1, pen: 1, base: 0, top: 0 };
-  var samples = [];           // values, newest last
-  var markers = [];           // { serial, v, born }
-  var serial = 0, acc = 0, energy = 0, wander = 0, drift = 0;
-  var peak = null, lastMark = -1e9, lastPointer = 0, nextBlip = 0;
-  var raf = 0, last = 0, visible = false, sized = false;
-  var pointer = { x: 0, y: 0, t: 0, has: false };
+  // node positions as fractions of the drawing area: entry points on the left, the firewall,
+  // internal hosts, and the SOC watching from the top right
+  var LAYOUT = {
+    e0: [0.02, 0.15], e1: [0.02, 0.5], e2: [0.02, 0.85], fw: [0.27, 0.5],
+    a: [0.46, 0.18], b: [0.5, 0.7], c: [0.66, 0.4], d: [0.7, 0.9], e: [0.84, 0.6], soc: [0.95, 0.12]
+  };
+  var ENTRIES = ['e0', 'e1', 'e2'];
+  var LINKS = [['e0', 'fw'], ['e1', 'fw'], ['e2', 'fw'], ['fw', 'a'], ['fw', 'b'], ['a', 'c'], ['b', 'c'], ['b', 'd'], ['c', 'e'], ['d', 'e']];
+  var WATCH = [['soc', 'a'], ['soc', 'c'], ['soc', 'e']];
+  var ROUTES = [['fw', 'a', 'c', 'e'], ['fw', 'b', 'c', 'e'], ['fw', 'b', 'd', 'e'], ['fw', 'a', 'c']];
 
-  function valueY(v) { return R.base - v * (R.base - R.top); }
+  var w = 1, h = 1, narrow = false, sized = false;
+  var nodes = {}, packets = [], spawn = 0, sincePass = 0;
+  var raf = 0, last = 0, visible = false;
+  var offX = 0, offY = 0;
+  var pointer = { x: -1e4, y: -1e4, inside: false };
 
-  // quiet baseline: a slow wander plus fine jitter, with spikes from activity on top
-  function nextValue() {
-    drift += (Math.random() - 0.5) * 0.003;
-    drift *= 0.95;
-    wander = Math.max(-0.06, Math.min(0.1, (wander + drift) * 0.98));
-    var v = 0.03 + wander + (Math.random() - 0.5) * 0.035 + energy * (0.55 + 0.45 * Math.random());
-    energy *= 0.86;
-    return Math.max(-0.12, Math.min(1.04, v));
-  }
-
-  function push(v, now) {
-    samples.push(v);
-    serial++;
-    // track a peak while above the threshold; mark it once the line comes back down
-    if (v >= THRESHOLD) {
-      if (!peak || v > peak.v) peak = { serial: serial, v: v };
-    } else if (peak) {
-      if (peak.serial - lastMark > RATE * 0.8) {
-        markers.push({ serial: peak.serial, v: peak.v, born: now });
-        lastMark = peak.serial;
-      }
-      peak = null;
-    }
-    var keep = Math.ceil((R.pen - R.x0) / (speed / RATE)) + 4;
-    if (samples.length > keep) samples.splice(0, samples.length - keep);
-  }
+  function rand(a, b) { return a + Math.random() * (b - a); }
+  function ease(x) { return 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3); }
 
   function layout(width, height) {
     w = Math.max(1, width);
@@ -63,134 +46,141 @@
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    if (narrow) {
-      // phones and tablets: a band under the buttons, the full width of the hero
-      R = { x0: 0, x1: w, pen: w - 34, base: h - 46, top: h - 150 };
-      speed = 42;
-    } else {
-      // desktop: the right side of the hero, clear of the headline
-      var mid = h * 0.52, amp = Math.min(h * 0.24, 160);
-      R = { x0: w * 0.54, x1: w, pen: w - Math.min(120, w * 0.08), base: mid + amp * 0.55, top: mid - amp };
-      speed = 70;
+    // desktop: the right side of the hero, clear of the headline; narrow screens: a band under the buttons
+    var R;
+    if (narrow) R = { x0: 12, x1: w - 24, top: h - 168, bottom: h - 30 };
+    else {
+      var mid = h * 0.52, half = Math.min(h * 0.24, 150);
+      R = { x0: w * 0.55, x1: w - Math.min(64, w * 0.04), top: mid - half, bottom: mid + half };
     }
+    Object.keys(LAYOUT).forEach(function (k) {
+      nodes[k] = { x: R.x0 + (R.x1 - R.x0) * LAYOUT[k][0], y: R.top + (R.bottom - R.top) * LAYOUT[k][1] };
+    });
   }
 
-  // fill the paper on first load so the chart arrives complete, with one past detection already ringed
-  function prefill(now) {
-    samples = []; markers = []; peak = null; lastMark = -1e9;
-    nextBlip = now + 1800;
-    var n = Math.ceil((R.pen - R.x0) / (speed / RATE));
-    var spikeAt = Math.round(n * 0.62);
-    for (var i = 0; i < n; i++) {
-      if (i === spikeAt) energy = 0.85;
-      if (i === Math.round(n * 0.3)) energy = Math.max(energy, 0.32);
-      push(nextValue(), now - LABEL_LIFE);
-    }
+  function addPacket() {
+    var start = ENTRIES[Math.floor(Math.random() * ENTRIES.length)];
+    var pass = Math.random() < PASS_RATE || sincePass > MAX_QUIET;
+    if (pass) sincePass = 0;
+    var route = [start].concat(pass ? ROUTES[Math.floor(Math.random() * ROUTES.length)] : ['fw']);
+    packets.push({ route: route, seg: 0, f: 0, v: rand(70, 100), pass: pass, state: 'flow', age: 0, x: nodes[start].x, y: nodes[start].y });
   }
 
-  function draw(now) {
-    ctx.clearRect(0, 0, w, h);
-    var dx = speed / RATE;
-    var shift = acc * dx;               // sub-sample scroll keeps the paper moving smoothly between samples
-    var span = R.pen - R.x0;
-    var fade = function (x) { return Math.max(0, Math.min(1, (x - R.x0) / (span * 0.28))); };
-    var yT = valueY(THRESHOLD);
-
-    // paper: baseline rule, a tick every second, and the pen carriage
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = RULE;
-    ctx.beginPath();
-    ctx.moveTo(R.x0, R.base + 0.5);
-    ctx.lineTo(R.x1, R.base + 0.5);
-    for (var s = serial - (serial % RATE); ; s -= RATE) {
-      var tx = R.pen - (serial - s) * dx - shift;
-      if (tx < R.x0) break;
-      ctx.moveTo(tx, R.base + 3);
-      ctx.lineTo(tx, R.base + 9);
-    }
-    ctx.moveTo(R.pen + 0.5, R.top - 18);
-    ctx.lineTo(R.pen + 0.5, R.base + 9);
-    ctx.stroke();
-
-    // the threshold
-    ctx.save();
-    ctx.setLineDash([4, 5]);
-    ctx.strokeStyle = ACCENT;
-    ctx.globalAlpha = 0.6;
-    ctx.beginPath();
-    ctx.moveTo(R.x0, yT + 0.5);
-    ctx.lineTo(R.x1, yT + 0.5);
-    ctx.stroke();
-    ctx.restore();
-    ctx.font = LABEL_FONT;
-    ctx.fillStyle = ACCENT;
-    ctx.globalAlpha = 0.85;
-    ctx.fillText('threshold', narrow ? R.x0 + 8 : Math.min(R.pen + 10, R.x1 - ctx.measureText('threshold').width - 8), yT - 7);
-    ctx.globalAlpha = 1;
-
-    // the ink trace, fading in from the left edge of the paper
-    var grad = ctx.createLinearGradient(R.x0, 0, R.x0 + span * 0.35, 0);
-    grad.addColorStop(0, 'rgba(0,0,0,0)');
-    grad.addColorStop(1, INK);
-    ctx.strokeStyle = grad;
-    ctx.lineWidth = 1.5;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    var n = samples.length;
-    var started = false;
-    for (var i = 0; i < n; i++) {
-      var x = R.pen - (n - 1 - i) * dx - shift;
-      if (x < R.x0) continue;
-      var y = valueY(samples[i]);
-      if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
-    }
-    var headY = valueY(n ? samples[n - 1] : 0);
-    if (started) ctx.lineTo(R.pen, headY);
-    ctx.stroke();
-
-    // the pen
-    ctx.fillStyle = INK;
-    ctx.beginPath();
-    ctx.arc(R.pen, headY, 2.6, 0, Math.PI * 2);
-    ctx.fill();
-
-    // detections: an accent ring that draws in, with a short-lived label
-    ctx.strokeStyle = ACCENT;
-    ctx.fillStyle = ACCENT;
-    ctx.lineWidth = 1.6;
-    for (var m = markers.length - 1; m >= 0; m--) {
-      var mk = markers[m];
-      var mx = R.pen - (serial - mk.serial) * dx - shift;
-      if (mx < R.x0 - 20) { markers.splice(m, 1); continue; }
-      var age = now - mk.born;
-      var grow = 1 - Math.pow(1 - Math.min(1, age / 380), 3);
-      var my = valueY(mk.v);
-      ctx.globalAlpha = fade(mx);
-      ctx.beginPath();
-      ctx.arc(mx, my, 3 + 7 * grow, 0, Math.PI * 2);
-      ctx.stroke();
-      if (age < LABEL_LIFE) {
-        var la = age < 200 ? age / 200 : age > LABEL_LIFE - 500 ? (LABEL_LIFE - age) / 500 : 1;
-        ctx.globalAlpha = la * fade(mx);
-        var label = 'detected';
-        ctx.fillText(label, mx - ctx.measureText(label).width / 2, my - 17);
+  function step(dt) {
+    sincePass += dt;
+    spawn += dt * 1.1;
+    while (spawn >= 1) { spawn -= 1; addPacket(); }
+    for (var i = 0; i < packets.length; i++) {
+      var p = packets[i];
+      p.age += dt;
+      if (p.state !== 'flow') continue;
+      var a = nodes[p.route[p.seg]], b = nodes[p.route[p.seg + 1]];
+      p.f += (p.v * dt) / (Math.hypot(b.x - a.x, b.y - a.y) || 1);
+      if (p.f >= 1) {
+        p.seg++;
+        p.f = 0;
+        if (p.seg >= p.route.length - 1) {
+          var end = nodes[p.route[p.route.length - 1]];
+          p.x = end.x; p.y = end.y;
+          p.state = p.pass ? 'caught' : 'blocked';
+          p.age = 0;
+          continue;
+        }
+        a = nodes[p.route[p.seg]]; b = nodes[p.route[p.seg + 1]];
       }
+      p.x = a.x + (b.x - a.x) * p.f;
+      p.y = a.y + (b.y - a.y) * p.f;
     }
+    packets = packets.filter(function (p) {
+      return !(p.state === 'blocked' && p.age > 0.6) && !(p.state === 'caught' && p.age > CATCH_LIFE);
+    });
+  }
+
+  function label(text, x, y, color, alpha) {
+    ctx.font = LABEL_FONT;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = color;
+    ctx.globalAlpha = alpha;
+    ctx.fillText(text, x, y);
     ctx.globalAlpha = 1;
   }
 
-  function step(now, elapsed) {
-    acc += (elapsed / 1000) * RATE;
-    // when nobody is moving, the line still twitches now and then, sometimes enough to trip the threshold
-    if (now - lastPointer > 2500 && now > nextBlip) {
-      energy = Math.max(energy, Math.random() < 0.4 ? 0.68 + 0.25 * Math.random() : 0.18 + 0.25 * Math.random());
-      nextBlip = now + 2600 + Math.random() * 3600;
-    }
-    while (acc >= 1) {
-      push(nextValue(), now);
-      acc -= 1;
-    }
+  function near(k) {
+    var n = nodes[k];
+    return pointer.inside && Math.hypot(pointer.x - n.x, pointer.y - n.y) < 34;
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, w, h);
+
+    // links, darker around the node under the pointer
+    ctx.lineWidth = 1;
+    LINKS.forEach(function (l) {
+      var a = nodes[l[0]], b = nodes[l[1]], hot = near(l[0]) || near(l[1]);
+      ctx.strokeStyle = hot ? INK : DIM;
+      ctx.globalAlpha = hot ? 0.7 : 0.32;
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    });
+    // the SOC's monitoring lines
+    ctx.save();
+    ctx.setLineDash([3, 5]);
+    ctx.strokeStyle = ACCENT;
+    ctx.globalAlpha = 0.35;
+    WATCH.forEach(function (l) {
+      var a = nodes[l[0]], b = nodes[l[1]];
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    });
+    ctx.restore();
+    ctx.globalAlpha = 1;
+
+    // nodes: entry points, the firewall box, internal hosts, the SOC
+    Object.keys(nodes).forEach(function (k) {
+      var n = nodes[k], hot = near(k);
+      ctx.fillStyle = PAPER;
+      if (k === 'fw') {
+        ctx.strokeStyle = INK; ctx.lineWidth = 1.6;
+        ctx.fillRect(n.x - 6, n.y - 6, 12, 12); ctx.strokeRect(n.x - 6, n.y - 6, 12, 12);
+        label('firewall', n.x, n.y - 14, DIM, 1);
+      } else if (k === 'soc') {
+        ctx.strokeStyle = ACCENT; ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.arc(n.x, n.y, 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = ACCENT;
+        ctx.beginPath(); ctx.arc(n.x, n.y, 3, 0, Math.PI * 2); ctx.fill();
+        label('SOC', n.x, n.y - 14, ACCENT, 0.9);
+      } else {
+        ctx.strokeStyle = ENTRIES.indexOf(k) >= 0 ? DIM : INK;
+        ctx.lineWidth = hot ? 2 : 1.4;
+        ctx.beginPath(); ctx.arc(n.x, n.y, hot ? 5.5 : 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      }
+    });
+
+    // packets: moving dots, a fading circle where the firewall stops one, a traced and ringed catch
+    packets.forEach(function (p) {
+      if (p.state === 'blocked') {
+        var k = ease(p.age / 0.5);
+        ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.globalAlpha = 1 - k;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 3 + 5 * k, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 1;
+      } else if (p.state === 'caught') {
+        var soc = nodes.soc, grow = ease(p.age / 0.45);
+        var fade = p.age > CATCH_LIFE - 0.8 ? Math.max(0, (CATCH_LIFE - p.age) / 0.8) : 1;
+        ctx.strokeStyle = ACCENT; ctx.lineWidth = 1.4; ctx.globalAlpha = fade;
+        ctx.beginPath(); ctx.moveTo(soc.x, soc.y); ctx.lineTo(soc.x + (p.x - soc.x) * grow, soc.y + (p.y - soc.y) * grow); ctx.stroke();
+        ctx.fillStyle = INK;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 3.6, 0, Math.PI * 2); ctx.fill();
+        if (p.age > 0.4) {
+          var age = p.age - 0.4;
+          ctx.strokeStyle = ACCENT; ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.arc(p.x, p.y, 3 + 7 * ease(age / 0.4), 0, Math.PI * 2); ctx.stroke();
+          if (age < 2.6) label('detected', p.x, p.y - 16, ACCENT, Math.min(1, age / 0.2) * (age > 2.1 ? (2.6 - age) / 0.5 : 1) * fade);
+        }
+        ctx.globalAlpha = 1;
+      } else {
+        ctx.fillStyle = INK; ctx.globalAlpha = Math.min(1, p.age * 3);
+        ctx.beginPath(); ctx.arc(p.x, p.y, 3.6, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    });
   }
 
   function frame(now) {
@@ -200,10 +190,10 @@
       raf = requestAnimationFrame(frame);
       return;
     }
-    var elapsed = Math.min(100, now - (last || now));
+    var dt = Math.min(0.05, (now - (last || now)) / 1000);
     last = now;
-    step(now, elapsed);
-    draw(now);
+    step(dt);
+    draw();
     raf = requestAnimationFrame(frame);
   }
 
@@ -213,22 +203,18 @@
     raf = requestAnimationFrame(frame);
   }
 
-  // movement anywhere on the page feeds the chart: faster movement, taller spike
-  function onMove(x, y) {
-    var now = performance.now();
-    if (pointer.has && visible) {
-      var dt = Math.max(8, now - pointer.t);
-      var pxPerMs = Math.hypot(x - pointer.x, y - pointer.y) / dt;
-      energy = Math.max(energy, Math.min(1, pxPerMs / 2.2));
-      lastPointer = now;
-    }
-    pointer.x = x; pointer.y = y; pointer.t = now; pointer.has = true;
+  // the canvas position on the page, cached so pointer moves never have to measure layout
+  function measure() {
+    var r = canvas.getBoundingClientRect();
+    offX = r.left + window.scrollX;
+    offY = r.top + window.scrollY;
   }
 
   if (!reduceMotion) {
-    window.addEventListener('pointermove', function (e) { onMove(e.clientX, e.clientY); }, { passive: true });
-    window.addEventListener('touchmove', function (e) {
-      if (e.touches[0]) onMove(e.touches[0].clientX, e.touches[0].clientY);
+    window.addEventListener('pointermove', function (e) {
+      pointer.x = e.pageX - offX;
+      pointer.y = e.pageY - offY;
+      pointer.inside = pointer.x >= 0 && pointer.y >= 0 && pointer.x <= w && pointer.y <= h;
     }, { passive: true });
   }
 
@@ -236,12 +222,19 @@
   new ResizeObserver(function (entries) {
     var box = entries[0].contentRect;
     var first = !sized;
+    measure();
     layout(box.width, box.height);
     sized = true;
-    if (first) prefill(performance.now());
-    draw(performance.now());
+    if (first) {
+      // start mid-story so the first frame already shows traffic, and one catch for still frames
+      packets = []; sincePass = MAX_QUIET - 1;
+      for (var i = 0; i < 240; i++) step(1 / 30);
+    }
+    draw();
     if (first && visible) start();
   }).observe(canvas);
+  // content above the canvas can grow (fonts, images) without the canvas resizing, which shifts its offset
+  new ResizeObserver(function () { measure(); }).observe(document.body);
 
   new IntersectionObserver(function (entries) {
     visible = entries[0].isIntersecting;
