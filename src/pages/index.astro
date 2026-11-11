@@ -13,13 +13,16 @@ const posts = (await getCollection('posts', isPublished))
   .slice(0, 3);
 const projects = (await getCollection('projects', isPublished)).sort(byOrder);
 
+// keeping attackers out first, then catching the ones who get in
 const services = [
-  { name: 'Security operations', text: 'SOC architecture and end-to-end tenant onboarding for Microsoft Sentinel and Defender XDR.' },
+  { name: 'Network security and firewalls', text: 'Fortinet NGFW, Forcepoint SMC and VMware NSX-T firewalls, F5 LTM and ASM WAF policies, VPN tunnels and network ACLs.' },
+  { name: 'Security architecture', text: 'SOC architectures for new clients, security reviews of client and third-party integrations, and perimeter and network design.' },
+  { name: 'Security operations', text: '24/7 multi-tenant SOC operations and end-to-end tenant onboarding for Microsoft Sentinel and Defender XDR.' },
   { name: 'Detection engineering', text: 'KQL rules managed as code and deployed through CI/CD, tuned for fewer false positives and wider MITRE ATT&CK coverage.' },
-  { name: 'Purple teaming', text: 'Emulating real adversary techniques against your detections, then writing rules for the gaps they expose.' },
   { name: 'Incident response', text: 'Investigations from first triage through recovery and reporting, plus playbooks your team can reuse.' },
+  { name: 'Purple teaming', text: 'Emulating real adversary techniques against your detections, then writing rules for the gaps they expose.' },
   { name: 'Threat and vulnerability management', text: 'Threat intelligence fed into Sentinel, Tenable Nessus scanning, and critical findings driven to closure.' },
-  { name: 'Cloud and network hardening', text: 'Azure hardening against CIS and Microsoft benchmarks, firewalls and F5 WAF, and ISO/IEC 27001 audits.' },
+  { name: 'Cloud hardening and compliance', text: 'Azure hardening against CIS and Microsoft benchmarks, and ISO/IEC 27001 audits taken through to certification.' },
 ];
 
 // core tools lead the list and carry the accent
@@ -27,15 +30,17 @@ const tools = [
   { name: 'Microsoft Sentinel', core: true },
   { name: 'Defender XDR', core: true },
   { name: 'KQL', core: true },
+  { name: 'Fortinet NGFW', core: true },
+  { name: 'F5 LTM & ASM' },
+  { name: 'Forcepoint SMC' },
+  { name: 'VMware NSX-T' },
   { name: 'MITRE ATT&CK' },
   { name: 'Azure' },
   { name: 'Tenable Nessus' },
-  { name: 'Fortinet' },
-  { name: 'F5 LTM & ASM' },
   { name: 'LogRhythm' },
   { name: 'Splunk' },
 ];
-const description = 'Cybersecurity engineer building detections and running security operations on Microsoft Sentinel and Defender XDR.';
+const description = 'Cybersecurity engineer securing networks with firewalls, WAF and security architecture, and running detection and response on Microsoft Sentinel and Defender XDR.';
 
 // tells search engines who the site belongs to and which profiles are the same person
 const schema = {
@@ -50,7 +55,7 @@ const schema = {
       description,
       email: `mailto:${email}`,
       sameAs: [LINKEDIN, GITHUB],
-      knowsAbout: ['Microsoft Sentinel', 'Microsoft Defender XDR', 'KQL', 'Detection engineering', 'Security operations', 'Incident response', 'Purple teaming', 'Threat intelligence', 'Vulnerability management'],
+      knowsAbout: ['Network security', 'Firewalls', 'Web application firewalls', 'Security architecture', 'Microsoft Sentinel', 'Microsoft Defender XDR', 'KQL', 'Detection engineering', 'Security operations', 'Incident response', 'Purple teaming', 'Threat intelligence', 'Vulnerability management'],
       alumniOf: { '@type': 'CollegeOrUniversity', name: "Higher School of Communication of Tunis (Sup'Com)" },
     },
     { '@type': 'WebSite', '@id': `${HOME}#website`, url: HOME, name: NAME, inLanguage: 'en', publisher: { '@id': PERSON_ID } },
@@ -62,8 +67,8 @@ const schema = {
     <canvas class="trace" data-trace aria-hidden="true"></canvas>
     <div class="wrap hero-inner">
       <div class="hero-copy">
-        <h1 id="hero-title" class="display"><span>Detection engineering</span> <span>for Microsoft security.</span></h1>
-        <p class="lede">I'm Mohamed Fadhel Ghodhbane, a cybersecurity engineer. I build detections and run security operations on Microsoft Sentinel and Defender XDR, and I write up what I learn along the way.</p>
+        <h1 id="hero-title" class="display"><span>Securing networks,</span> <span>and catching what</span> <span>gets through.</span></h1>
+        <p class="lede">I'm Mohamed Fadhel Ghodhbane, a cybersecurity engineer. I harden networks with firewalls, WAF and well-designed architecture, and I run security operations on Microsoft Sentinel and Defender XDR to catch what still gets through.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href={`mailto:${email}`}>Email me <WakeArrow /></a>
           <a class="btn" href={`${base}writing/`}>Read my articles <WakeArrow /></a>
@@ -77,7 +82,7 @@ const schema = {
       <div class="section-head">
         <h2 id="work-title">What I do</h2>
         <div class="section-head-copy">
-          <p>Most of my work is writing the rules that catch attackers, then responding when they fire.</p>
+          <p>I work on both sides of defence: keeping attackers out with firewalls and sound architecture, and catching the ones who get in with detection and response.</p>
           <p class="facts">2.5+ years across a multi-tenant SOC, a telecom operator's network, and corporate IT.</p>
         </div>
       </div>
@@ -146,7 +151,7 @@ const schema = {
 
   <section class="close" id="contact" aria-labelledby="contact-title">
     <div class="wrap close-inner">
-      <h2 id="contact-title" class="display-2">Need help with Sentinel or Defender XDR?</h2>
+      <h2 id="contact-title" class="display-2">Need a security engineer?</h2>
       <p class="lede">Email is the quickest way to reach me. I'm open to consulting work and full-time security roles.</p>
       <div class="email-row">
         <a class="email-big" id="email-address" href={`mailto:${email}`}>{email}</a>
@@ -170,7 +175,7 @@ const schema = {
   .hero .trace { z-index: -1; }
   .hero-copy { display: grid; gap: 1.8rem; justify-items: start; max-width: 46rem; }
   /* the headline is a description now, so it runs smaller than the global display size and keeps clear of the chart */
-  .hero .display { font-size: clamp(2.5rem, 4.9vw, 4.4rem); }
+  .hero .display { font-size: clamp(2.6rem, 5.4vw, 4.8rem); }
   .display span { display: block; }
   .hero-actions { display: flex; flex-wrap: wrap; gap: 0.9rem; padding-top: 0.3rem; }
 
@@ -226,6 +231,6 @@ const schema = {
     .project .state, .project p { grid-column: auto; grid-row: auto; }
   }
   @media (max-width: 480px) {
-    .hero .display { font-size: 2.1rem; }
+    .hero .display { font-size: 2.3rem; }
   }
 </style>
