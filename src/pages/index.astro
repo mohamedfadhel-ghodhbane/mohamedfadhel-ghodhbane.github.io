@@ -13,6 +13,15 @@ const posts = (await getCollection('posts', isPublished))
   .slice(0, 3);
 const projects = (await getCollection('projects', isPublished)).sort(byOrder);
 
+// the layers I've secured, from the network edge inward
+const layers = [
+  { name: 'Perimeter', text: 'Firewalls and WAF at the edge of the network.', tools: ['Fortinet NGFW', 'Forcepoint SMC', 'F5 LTM & ASM'] },
+  { name: 'Internal network', text: 'Segmentation, internal firewalls and access rules.', tools: ['VMware NSX-T', 'pfSense', 'Network ACLs'] },
+  { name: 'Cloud', text: 'Azure tenants assessed and hardened against recognised benchmarks.', tools: ['Microsoft Azure', 'Maester', 'Security assessments', 'CIS benchmarks', 'Microsoft benchmarks'] },
+  { name: 'Endpoints and identity', text: 'Devices, servers and accounts, kept patched and managed.', tools: ['Defender XDR', 'Intune', 'Workspace ONE', 'Active Directory', 'Tenable Nessus'] },
+  { name: 'SOC', text: 'Detect, investigate and respond when something gets through.', tools: ['Microsoft Sentinel', 'KQL', 'LogRhythm', 'Splunk', 'MITRE ATT&CK'], core: true },
+];
+
 // keeping attackers out first, then catching the ones who get in
 const services = [
   { name: 'Network security and firewalls', text: 'Fortinet NGFW, Forcepoint SMC and VMware NSX-T firewalls, F5 LTM and ASM WAF policies, VPN tunnels and network ACLs.' },
@@ -74,6 +83,27 @@ const schema = {
           <a class="btn" href={`${base}writing/`}>Read my articles <WakeArrow /></a>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="band" id="layers" aria-labelledby="layers-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="layers-title">Defence in layers</h2>
+        <div class="section-head-copy">
+          <p>From the network edge to the SOC: the layers I've secured and monitored, and the tools I used on each.</p>
+        </div>
+      </div>
+      <ol class="layers">
+        {layers.map((l) => (
+          <li class:list={['layer', { core: l.core }]}>
+            <span class="layer-node" aria-hidden="true"></span>
+            <h3>{l.name}</h3>
+            <p>{l.text}</p>
+            <ul class="layer-tools">{l.tools.map((t) => <li>{t}</li>)}</ul>
+          </li>
+        ))}
+      </ol>
     </div>
   </section>
 
@@ -180,6 +210,33 @@ const schema = {
   .hero-actions { display: flex; flex-wrap: wrap; gap: 0.9rem; padding-top: 0.3rem; }
 
   .facts { color: var(--text) !important; font-size: 0.98rem; }
+
+  /* defence layers: five columns joined by a path that runs inward from the perimeter and ends, ringed, at the SOC */
+  .layers { position: relative; list-style: none; margin: 0; padding: 2.6rem 0 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2.25rem 1.75rem; }
+  .layer { position: relative; display: grid; gap: 0.6rem; align-content: start; }
+  .layer-node { position: absolute; left: 0; top: calc(-2rem - 6px); width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--text-dim); background: var(--paper); }
+  /* the path: one segment from each node to the next, so it stops at the SOC; the last stretch turns to the accent */
+  .layer:not(:last-child)::after { content: ""; position: absolute; top: -2rem; left: 12px; right: -1.75rem; height: 1px; background: var(--text-dim); }
+  .layer:nth-last-child(2)::after { background: linear-gradient(90deg, var(--text-dim), var(--accent)); }
+  .layer.core .layer-node { top: calc(-2rem - 9px); width: 18px; height: 18px; border-color: var(--accent); }
+  .layer.core .layer-node::before { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 1px solid var(--accent); opacity: 0; animation: layer-ping 2.6s var(--ease-out) infinite; }
+  .layer.core .layer-node::after { content: "detected"; position: absolute; left: 26px; top: 50%; transform: translateY(-50%); font: 600 0.8rem / 1 var(--font-body); color: var(--accent); white-space: nowrap; }
+  @keyframes layer-ping { 0% { opacity: 0.7; transform: scale(0.6); } 100% { opacity: 0; transform: scale(1.6); } }
+  .layer h3 { font: 500 1.3rem / 1.2 var(--font-display); }
+  .layer.core h3 { color: var(--accent); }
+  .layer p { color: var(--text-soft); font-size: 0.95rem; line-height: 1.5; }
+  .layer-tools { list-style: none; margin: 0.2rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .layer-tools li { padding: 0.15rem 0.55rem; border: 1px solid var(--rule); border-radius: 999px; background: #ffffff; font-size: 0.8rem; line-height: 1.35; color: var(--text); }
+  .layer.core .layer-tools li { border-color: rgba(8, 107, 80, 0.35); background: var(--accent-soft); color: var(--accent-hover); }
+  /* narrower screens: the same path runs down the left side instead of across */
+  @media (max-width: 960px) {
+    .layers { grid-template-columns: minmax(0, 1fr); padding: 0 0 0 2.25rem; gap: 2rem; }
+    .layer:not(:last-child)::after { left: calc(-2.25rem + 0.55rem); right: auto; top: calc(0.3rem + 12px); bottom: calc(-2rem - 0.3rem); width: 1px; height: auto; }
+    .layer:nth-last-child(2)::after { background: linear-gradient(180deg, var(--text-dim), var(--accent)); }
+    .layer-node { left: calc(-2.25rem + 0.55rem - 6px); top: 0.3rem; }
+    .layer.core .layer-node { left: calc(-2.25rem + 0.55rem - 9px); top: 0.15rem; }
+    .layer.core .layer-node::after { display: none; }
+  }
 
   .projects { list-style: none; margin: 0; padding: 0; display: grid; }
   .project {
