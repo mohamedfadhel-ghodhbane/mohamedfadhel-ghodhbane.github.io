@@ -44,6 +44,10 @@ The site deploys to GitHub Pages through `.github/workflows/deploy.yml` on every
 
 Every page carries a canonical link and Open Graph and Twitter tags. Each published post gets its own 1200 x 630 title card in `public/og/<post>.jpg`, made by `python tools/og-images.py` (run it after adding or retitling a post; it needs Pillow and Chrome). Pages without a card use `public/og-default.jpg`. The home page describes the site owner with schema.org `Person` data, and each article with `BlogPosting` data.
 
+## Visitor stats
+
+The layout loads GoatCounter (`src/layouts/Base.astro`), which counts visits without cookies or personal data. The dashboard is at https://portfoliomohamed.goatcounter.com. Visits from localhost are not counted; to stop counting your own browser on the live site, open the site once with `#toggle-goatcounter` at the end of the address.
+
 ## Design
 
 The look is "Paper": a warm off-white background, ink text, hairline rules and one emerald accent, with Newsreader serif headings and Albert Sans body text. The palette, type and controls live in `src/styles/global.css`, and article code blocks use Shiki's `github-light-default` theme (`astro.config.mjs`). The home page hero has a strip-chart recorder, `src/scripts/trace.js`: an ink pen plots the visitor's movement as the paper scrolls, and peaks that cross the dashed threshold are ringed and marked "detected". It takes its colours from the CSS tokens, pauses off screen, draws at 30 fps on narrow screens, and shows a single still frame when the visitor prefers reduced motion.

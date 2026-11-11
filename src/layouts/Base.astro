@@ -55,6 +55,8 @@ const jsonLd = schema && JSON.stringify(schema).replace(/</g, '\\u003c');
     <link rel="manifest" href={`${base}site.webmanifest`} />
     <link rel="alternate" type="application/rss+xml" title={`${NAME}: articles`} href={`${base}rss.xml`} />
     {jsonLd && <script is:inline type="application/ld+json" set:html={jsonLd}></script>}
+    {/* GoatCounter visit counts: no cookies, no personal data, and it ignores localhost by default */}
+    <script is:inline data-goatcounter="https://portfoliomohamed.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
