@@ -232,17 +232,19 @@ a.tag:hover { border-color: var(--accent); color: var(--accent); }
 /* sections */
 .band { position: relative; padding-block: 6rem; border-top: 1px solid var(--rule-soft); }
 .band-quiet { padding-block: 5rem; }
-.split { display: grid; grid-template-columns: minmax(0, 21rem) minmax(0, 1fr); gap: 2.5rem 5rem; align-items: start; }
-.split-head { display: grid; gap: 1.1rem; align-content: start; }
-.split-head p { color: var(--text-soft); max-width: 34ch; }
+/* home sections share one two-column grid: headings and names on the left, descriptions on the right,
+   so every section starts from the same edge and no column is left empty under a heading */
+.section-head { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 1rem 4rem; align-items: baseline; margin-bottom: 2.5rem; }
+.section-head-copy { display: grid; gap: 0.9rem; justify-items: start; }
+.section-head-copy p { color: var(--text-soft); max-width: 60ch; }
 
 /* list rows with a rule that draws in on hover */
 .currents { list-style: none; margin: 0; padding: 0; display: grid; }
 .current {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
-  gap: 0.35rem 2rem;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 0.35rem 4rem;
   padding-block: 1.4rem;
   border-top: 1px solid var(--rule);
 }
@@ -259,7 +261,7 @@ a.tag:hover { border-color: var(--accent); color: var(--accent); }
   transition: transform 0.6s var(--ease-out);
 }
 .current:hover::before { transform: scaleX(1); }
-.current p { color: var(--text-soft); max-width: 52ch; }
+.current p { color: var(--text-soft); max-width: 60ch; }
 
 /* posts */
 .post-list { list-style: none; margin: 0; padding: 0; display: grid; }
@@ -293,6 +295,10 @@ a.tag:hover { border-color: var(--accent); color: var(--accent); }
 .post-summary { color: var(--text-soft); max-width: 62ch; }
 .post-tags { display: flex; flex-wrap: wrap; gap: 0.45rem; padding-top: 0.2rem; }
 mark { background: var(--highlight); color: inherit; border-radius: 2px; padding: 0 0.05em; }
+/* on the home page, posts follow the section grid: title on the left, summary and details on the right */
+.post-list.wide .post { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: 4rem; align-items: start; }
+.post-list.wide .post-title { grid-column: 1; grid-row: 1 / span 2; }
+.post-list.wide .post-summary, .post-list.wide .post-meta { grid-column: 2; }
 
 /* footer */
 .site-footer { border-top: 1px solid var(--rule-soft); }
@@ -311,8 +317,8 @@ mark { background: var(--highlight); color: inherit; border-radius: 2px; padding
 .footer-inner a:hover { color: var(--accent); }
 
 @media (max-width: 900px) {
-  .split { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
-  .current { grid-template-columns: minmax(0, 1fr); }
+  .section-head, .current, .post-list.wide .post { grid-template-columns: minmax(0, 1fr); }
+  .post-list.wide .post-title, .post-list.wide .post-summary, .post-list.wide .post-meta { grid-column: auto; grid-row: auto; }
   .band { padding-block: 4.5rem; }
 }
 @media (max-width: 620px) {

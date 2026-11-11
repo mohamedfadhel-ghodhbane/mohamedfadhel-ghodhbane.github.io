@@ -73,11 +73,13 @@ const schema = {
   </section>
 
   <section class="band" id="work" aria-labelledby="work-title">
-    <div class="wrap split">
-      <div class="split-head">
+    <div class="wrap">
+      <div class="section-head">
         <h2 id="work-title">What I do</h2>
-        <p>Most of my work is writing the rules that catch attackers, then responding when they fire.</p>
-        <p class="facts">2.5+ years across a multi-tenant SOC, a telecom operator's network, and corporate IT.</p>
+        <div class="section-head-copy">
+          <p>Most of my work is writing the rules that catch attackers, then responding when they fire.</p>
+          <p class="facts">2.5+ years across a multi-tenant SOC, a telecom operator's network, and corporate IT.</p>
+        </div>
       </div>
       <ul class="currents">
         {services.map((s) => (
@@ -92,10 +94,10 @@ const schema = {
 
   {projects.length > 0 && (
     <section class="band" id="projects" aria-labelledby="projects-title">
-      <div class="wrap split">
-        <div class="split-head">
+      <div class="wrap">
+        <div class="section-head">
           <h2 id="projects-title">Projects</h2>
-          <p>Open-source tools and references I maintain.</p>
+          <div class="section-head-copy"><p>Open-source tools and references I maintain.</p></div>
         </div>
         <ul class="projects">
           {projects.map((p) => (
@@ -111,26 +113,34 @@ const schema = {
   )}
 
   <section class="band" id="writing" aria-labelledby="writing-title">
-    <div class="wrap split">
-      <div class="split-head">
+    <div class="wrap">
+      <div class="section-head">
         <h2 id="writing-title">Articles</h2>
-        <p>Guides, writeups, and notes from detection and response work.</p>
-        <a class="link-wake" href={`${base}writing/`}>All articles <WakeArrow /></a>
+        <div class="section-head-copy">
+          <p>Guides, writeups, and notes from detection and response work.</p>
+          <a class="link-wake" href={`${base}writing/`}>All articles <WakeArrow /></a>
+        </div>
       </div>
-      <ul class="post-list">
+      <ul class="post-list wide">
         {posts.map((post) => <PostRow post={post} />)}
       </ul>
     </div>
   </section>
 
   <section class="band band-quiet" id="background" aria-labelledby="background-title">
-    <div class="wrap background">
-      <h2 id="background-title">Background</h2>
-      <p>I'm a telecommunications engineer with a Master's-level degree from Sup'Com. Before focusing on detection and response, I ran firewalls, WAF and SIEM for a telecom operator, led ISO/IEC 27001 audits, and built servers and networks for a consulting firm.</p>
-      <h3 class="tools-title">Tools I use most</h3>
-      <ul class="tools">
-        {tools.map((t) => <li class:list={['tool', { core: t.core }]}>{t.name}</li>)}
-      </ul>
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="background-title">Background</h2>
+        <div class="section-head-copy">
+          <p class="background-text">I'm a telecommunications engineer with a Master's-level degree from Sup'Com. Before focusing on detection and response, I ran firewalls, WAF and SIEM for a telecom operator, led ISO/IEC 27001 audits, and built servers and networks for a consulting firm.</p>
+        </div>
+      </div>
+      <div class="toolbelt">
+        <h3 class="tools-title">Tools I use most</h3>
+        <ul class="tools">
+          {tools.map((t) => <li class:list={['tool', { core: t.core }]}>{t.name}</li>)}
+        </ul>
+      </div>
     </div>
   </section>
 
@@ -164,30 +174,25 @@ const schema = {
   .display span { display: block; }
   .hero-actions { display: flex; flex-wrap: wrap; gap: 0.9rem; padding-top: 0.3rem; }
 
-  .facts {
-    padding-top: 1.1rem;
-    border-top: 1px solid var(--rule);
-    color: var(--text) !important;
-    font-size: 0.98rem;
-  }
+  .facts { color: var(--text) !important; font-size: 0.98rem; }
 
   .projects { list-style: none; margin: 0; padding: 0; display: grid; }
   .project {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.4rem 1.5rem;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 0.4rem 4rem;
     padding-block: 1.45rem;
     border-top: 1px solid var(--rule);
   }
   .project h3 a { text-decoration: none; }
   .project h3 a:hover { color: var(--accent); }
-  .project .state { grid-column: 2; grid-row: 1; align-self: center; }
-  .project p { grid-column: 1 / -1; color: var(--text-soft); max-width: 58ch; }
+  .project .state { grid-column: 1; grid-row: 2; justify-self: start; }
+  .project p { grid-column: 2; grid-row: 1 / span 2; color: var(--text-soft); max-width: 60ch; }
 
-  /* background: one short statement in a single column, a change of pace after the two-column sections */
-  .background { display: grid; gap: 1rem; max-width: calc(46rem + var(--gutter) + var(--gutter-r)); margin-inline: auto; }
-  .background p { font: 400 clamp(1.25rem, 2vw, 1.5rem) / 1.5 var(--font-display); color: var(--text); text-wrap: pretty; }
-  .tools-title { margin-top: 1.4rem; font-size: 1rem; color: var(--text-soft); }
+  /* background: the statement beside its heading, then the tools on the same two-column grid */
+  .background-text { font: 400 clamp(1.15rem, 1.6vw, 1.3rem) / 1.55 var(--font-display); color: var(--text) !important; text-wrap: pretty; }
+  .toolbelt { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 1rem 4rem; align-items: baseline; padding-top: 1.75rem; border-top: 1px solid var(--rule); }
+  .tools-title { font-size: 1rem; color: var(--text-soft); }
   .tools { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
   .tool { padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 999px; background: #ffffff; font: 500 0.95rem / 1.3 var(--font-body); color: var(--text); }
   .tool.core { border-color: rgba(8, 107, 80, 0.35); background: var(--accent-soft); color: var(--accent-hover); }
@@ -215,6 +220,10 @@ const schema = {
   .socials { display: flex; flex-wrap: wrap; gap: 1rem 2.25rem; }
   @media (max-width: 899px) {
     .hero { padding-bottom: 12.5rem; }
+  }
+  @media (max-width: 900px) {
+    .toolbelt, .project { grid-template-columns: minmax(0, 1fr); }
+    .project .state, .project p { grid-column: auto; grid-row: auto; }
   }
   @media (max-width: 480px) {
     .hero .display { font-size: 2.1rem; }
