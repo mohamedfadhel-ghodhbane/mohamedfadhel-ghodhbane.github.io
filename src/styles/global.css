@@ -230,8 +230,10 @@ a.tag:hover { border-color: var(--accent); color: var(--accent); }
 .nav a[aria-current="page"]::after { transform: scaleX(1); }
 
 /* sections */
-.band { position: relative; padding-block: 6rem; border-top: 1px solid var(--rule-soft); }
-.band-quiet { padding-block: 5rem; }
+/* each section is a full-width block: paper or panel, with a firm line where it starts, and the same spacing for all;
+   lines inside a section (rows, sub-groups) stay inside the content column, so they never read as a new section */
+.band { --band-bg: var(--paper); position: relative; padding-block: 6rem; border-top: 1px solid var(--rule); background: var(--band-bg); }
+.band-tint { --band-bg: var(--panel); }
 /* home sections share one two-column grid: headings and names on the left, descriptions on the right,
    so every section starts from the same edge and no column is left empty under a heading */
 .section-head { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 1rem 4rem; align-items: baseline; margin-bottom: 2.5rem; }

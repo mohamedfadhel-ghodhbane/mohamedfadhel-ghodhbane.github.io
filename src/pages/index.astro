@@ -13,6 +13,11 @@ const posts = (await getCollection('posts', isPublished))
   .slice(0, 3);
 const projects = (await getCollection('projects', isPublished)).sort(byOrder);
 
+// sections alternate paper and panel so each one reads as its own block; counted back from Background,
+// so the section just above the (panel) contact block is always paper
+const bands = ['layers', 'work', ...(projects.length > 0 ? ['projects'] : []), 'writing', 'background'];
+const tinted = (id: string) => (bands.length - 1 - bands.indexOf(id)) % 2 === 1;
+
 // the layers I've secured, from the network edge inward
 const layers = [
   { name: 'Perimeter', text: 'Firewalls and WAF at the edge of the network.', tools: ['Fortinet NGFW', 'Forcepoint SMC', 'F5 LTM & ASM'] },
@@ -86,7 +91,7 @@ const schema = {
     </div>
   </section>
 
-  <section class="band" id="layers" aria-labelledby="layers-title">
+  <section class:list={["band", { "band-tint": tinted("layers") }]} id="layers" aria-labelledby="layers-title">
     <div class="wrap">
       <div class="section-head">
         <h2 id="layers-title">Defence in layers</h2>
@@ -107,7 +112,7 @@ const schema = {
     </div>
   </section>
 
-  <section class="band" id="work" aria-labelledby="work-title">
+  <section class:list={["band", { "band-tint": tinted("work") }]} id="work" aria-labelledby="work-title">
     <div class="wrap">
       <div class="section-head">
         <h2 id="work-title">What I do</h2>
@@ -128,7 +133,7 @@ const schema = {
   </section>
 
   {projects.length > 0 && (
-    <section class="band" id="projects" aria-labelledby="projects-title">
+    <section class:list={["band", { "band-tint": tinted("projects") }]} id="projects" aria-labelledby="projects-title">
       <div class="wrap">
         <div class="section-head">
           <h2 id="projects-title">Projects</h2>
@@ -147,7 +152,7 @@ const schema = {
     </section>
   )}
 
-  <section class="band" id="writing" aria-labelledby="writing-title">
+  <section class:list={["band", { "band-tint": tinted("writing") }]} id="writing" aria-labelledby="writing-title">
     <div class="wrap">
       <div class="section-head">
         <h2 id="writing-title">Articles</h2>
@@ -162,7 +167,7 @@ const schema = {
     </div>
   </section>
 
-  <section class="band band-quiet" id="background" aria-labelledby="background-title">
+  <section class:list={["band", { "band-tint": tinted("background") }]} id="background" aria-labelledby="background-title">
     <div class="wrap">
       <div class="section-head">
         <h2 id="background-title">Background</h2>
@@ -171,7 +176,7 @@ const schema = {
         </div>
       </div>
       <div class="toolbelt">
-        <h3 class="tools-title">Tools I use most</h3>
+        <h3>Tools I use most</h3>
         <ul class="tools">
           {tools.map((t) => <li class:list={['tool', { core: t.core }]}>{t.name}</li>)}
         </ul>
@@ -214,7 +219,7 @@ const schema = {
   /* defence layers: five columns joined by a path that runs inward from the perimeter and ends, ringed, at the SOC */
   .layers { position: relative; list-style: none; margin: 0; padding: 2.6rem 0 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2.25rem 1.75rem; }
   .layer { position: relative; display: grid; gap: 0.6rem; align-content: start; }
-  .layer-node { position: absolute; left: 0; top: calc(-2rem - 6px); width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--text-dim); background: var(--paper); }
+  .layer-node { position: absolute; left: 0; top: calc(-2rem - 6px); width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--text-dim); background: var(--band-bg); }
   /* the path: one segment from each node to the next, so it stops at the SOC; the last stretch turns to the accent */
   .layer:not(:last-child)::after { content: ""; position: absolute; top: -2rem; left: 12px; right: -1.75rem; height: 1px; background: var(--text-dim); }
   .layer:nth-last-child(2)::after { background: linear-gradient(90deg, var(--text-dim), var(--accent)); }
@@ -254,14 +259,13 @@ const schema = {
   /* background: the statement beside its heading, then the tools on the same two-column grid */
   .background-text { font: 400 clamp(1.15rem, 1.6vw, 1.3rem) / 1.55 var(--font-display); color: var(--text) !important; text-wrap: pretty; }
   .toolbelt { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 1rem 4rem; align-items: baseline; padding-top: 1.75rem; border-top: 1px solid var(--rule); }
-  .tools-title { font-size: 1rem; color: var(--text-soft); }
   .tools { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
   .tool { padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 999px; background: #ffffff; font: 500 0.95rem / 1.3 var(--font-body); color: var(--text); }
   .tool.core { border-color: rgba(8, 107, 80, 0.35); background: var(--accent-soft); color: var(--accent-hover); }
 
   .close {
     padding-block: clamp(5rem, 12vh, 7.5rem);
-    border-top: 1px solid var(--rule-soft);
+    border-top: 1px solid var(--rule);
     background: var(--panel);
   }
   .close-inner { display: grid; gap: 1.5rem; justify-items: start; }
